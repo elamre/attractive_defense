@@ -19,8 +19,8 @@ func (c *CancelButton) Draw(screen *ebiten.Image, location *ebiten.DrawImageOpti
 	screen.DrawImage(c.img, location)
 }
 
-func (c *CancelButton) Selected(p *game.Player, b *BottomGui, g *world.Grid) {
-	b.SetIdleButtons()
+func (c *CancelButton) Selected(p *game.Player, b *SideGui, g *world.Grid) {
+	//b.SetIdleButtons()
 	g.SetSelectedPos(-1, -1)
 	// TODO set player idle here as well
 }

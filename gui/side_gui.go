@@ -2,9 +2,12 @@ package gui
 
 import (
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/attractive_defense/buildings/turrets"
 	"github.com/elamre/attractive_defense/game"
+	"github.com/elamre/attractive_defense/platforms"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type SideGui struct {
@@ -19,10 +22,15 @@ type SideGui struct {
 	drawX, drawY       int
 
 	tempCounter int
+	buttonArray []*Button
+
+	available map[string]bool
+
+	showingBuildings bool
 }
 
 func NewSideGui(pixelX, pixelY int) *SideGui {
-	return &SideGui{
+	s := &SideGui{
 		drawY:              pixelY,
 		drawX:              pixelX,
 		top:                assets.Get[*ebiten.Image](assets.AssetsGuiTopPart),
@@ -33,7 +41,11 @@ func NewSideGui(pixelX, pixelY int) *SideGui {
 		noticeLevelImgHigh: assets.Get[*ebiten.Image](assets.AssetsGuiWarningLevelHigh),
 		Rows:               8,
 		NoticeLevel:        24,
+		available:          InitButtons(),
+		showingBuildings:   true,
 	}
+	s.buttonArray = GetBuildingButtons(s.available)
+	return s
 }
 
 func (s *SideGui) InGui(x, y int) bool {
@@ -45,9 +57,57 @@ func (s *SideGui) InGui(x, y int) bool {
 	return false
 }
 
-func (s *SideGui) Update(*game.Player, *world.Grid) {
+func (s *SideGui) SetBuildingContext() {
+	s.buttonArray = GetBuildingButtons(s.available)
+}
+
+func (s *SideGui) SetBuildingSelectedContext(p *game.Player, e world.GridEntity) {
+	if t, ok := e.(*turrets.Turret); ok {
+		s.buttonArray = []*Button{NewUpgradableButton(t.Gun), NewUpgradableButton(t.Base)}
+	}
+}
+
+func (s *SideGui) Update(p *game.Player, g *world.Grid, camera *Camera) {
 	s.tempCounter++
 	s.NoticeLevel = (s.tempCounter / 10) % 25
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		mx, my := ebiten.CursorPosition()
+
+		if s.InGui(mx, my) {
+			xPos := 0
+			if mx > s.drawX+64 {
+				xPos = 1
+			}
+			yIndex := (my - 19 - 64) / 64
+			index := (yIndex * 2) + xPos
+			if index < len(s.buttonArray) {
+				s.buttonArray[index].selected(p, s, g)
+			}
+		} else {
+			cMx, cMy := camera.ScreenToWorld(mx, my)
+			x, y := g.MouseToGridPos(int(cMx), int(cMy))
+			g.SetSelectedPos(x, y)
+			if e := g.GetGridEntity(x, y, world.GridLevelGui); e != nil {
+				if _, ok := e.(*platforms.PurchasePlatform); ok {
+					// This should be much better TODO
+					platforms.NewPlatformAt(x, y, g)
+					g.SetGrid(x, y, world.GridLevelGui, nil)
+
+				}
+			}
+			if x != -1 && y != -1 {
+				if e := g.GetGridEntity(x, y, world.GridLevelStructures); e != nil {
+					s.SetBuildingSelectedContext(p, e)
+				} else if g.GetGridEntity(x, y, world.GridLevelPlatform) != nil {
+					s.SetBuildingContext()
+				}
+			}
+		}
+	} else if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		g.SetSelectedPos(-1, -1)
+	}
+	//s.showingBuildings = IsBuildable(g)
 }
 
 func (s *SideGui) Draw(screen *ebiten.Image) {
@@ -72,6 +132,21 @@ func (s *SideGui) Draw(screen *ebiten.Image) {
 			screen.DrawImage(s.noticeLevelImgHigh, &noticeOpts)
 		}
 		noticeOpts.GeoM.Translate(5, 0)
+	}
+	noticeOpts.GeoM.Reset()
+	noticeOpts.GeoM.Translate(float64(s.drawX)+5, float64(s.drawY)+19+64)
+	if !s.showingBuildings {
+		//noticeOpts.ColorM.Translate(-0.5, -0.5, -0.5, 0)
+	}
+	if s.buttonArray != nil {
+		for i, ss := range s.buttonArray {
+			ss.Draw(screen, &noticeOpts)
+			noticeOpts.GeoM.Translate(60, 0)
+
+			if i%2 == 1 {
+				noticeOpts.GeoM.Translate(-120, 64)
+			}
+		}
 	}
 }
 

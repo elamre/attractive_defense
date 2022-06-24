@@ -6,20 +6,29 @@ import (
 )
 
 type defaultBase struct {
-	image  *ebiten.Image
-	health int
-	level  int
+	image         *ebiten.Image
+	upgradeButton *ebiten.Image
+	health        int
+	level         int
 }
 
 func newDefaultBase() *defaultBase {
 	return &defaultBase{
-		image: assets.Get[*ebiten.Image](assets.AssetsTurretBase_1),
-		level: 0,
+		image:         assets.Get[*ebiten.Image](assets.AssetsTurretBase_1),
+		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiBaseUpgrade),
+		level:         1,
 	}
 }
 
-func (d *defaultBase) CanUpgrade() bool {
-	return d.level < 4
+func (d *defaultBase) GetUpgradeButton() *ebiten.Image {
+	return d.upgradeButton
+}
+
+func (d *defaultBase) UpgradeCost() int {
+	if d.level == 4 {
+		return -1
+	}
+	return 200
 }
 
 func (d *defaultBase) Upgrade() {

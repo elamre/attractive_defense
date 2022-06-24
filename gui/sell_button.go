@@ -19,9 +19,9 @@ func (c *SellButton) Draw(screen *ebiten.Image, location *ebiten.DrawImageOption
 	screen.DrawImage(c.img, location)
 }
 
-func (c *SellButton) Selected(p *game.Player, b *BottomGui, g *world.Grid) {
+func (c *SellButton) Selected(p *game.Player, b *SideGui, g *world.Grid) {
 	if e := g.GetGridEntity(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures); e != nil {
-		b.SetBuildingsButtons()
+		//b.SetBuildingsButtons()
 		e.SetForDeletion(g)
 	} else if e = g.GetGridEntity(g.SelectedGridX, g.SelectedGridY, world.GridLevelPlatform); e != nil {
 		e.SetForDeletion(g)

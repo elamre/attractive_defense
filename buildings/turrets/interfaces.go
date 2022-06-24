@@ -7,22 +7,24 @@ import (
 )
 
 type TurretBaseInterface interface {
-	CanUpgrade() bool
+	UpgradeCost() int
 	Upgrade()
+	GetUpgradeButton() *ebiten.Image
 	Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
 	TakeDamage(damage int) bool
 }
 
 type TurretGunInterface interface {
-	CanUpgrade() bool
+	UpgradeCost() int
 	Upgrade()
+	GetUpgradeButton() *ebiten.Image
 	Update(target game.Targetable)
 	Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
 }
 
 type Turret struct {
-	gun     TurretGunInterface
-	base    TurretBaseInterface
+	Gun     TurretGunInterface
+	Base    TurretBaseInterface
 	opts    *ebiten.DrawImageOptions
 	destroy bool
 	x, y    int
@@ -32,8 +34,8 @@ func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface)
 	opts := ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(float64(locX*64), float64(locY*64))
 	return &Turret{
-		gun:  gun,
-		base: base,
+		Gun:  gun,
+		Base: base,
 		opts: &opts,
 		x:    locX,
 		y:    locY,
@@ -41,7 +43,7 @@ func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface)
 }
 
 func (t *Turret) Damage(damage int) {
-	if t.base.TakeDamage(damage) {
+	if t.Base.TakeDamage(damage) {
 		// We are destroyed most likely
 	}
 }
@@ -57,6 +59,6 @@ func (t *Turret) SetForDeletion(g *world.Grid) {
 }
 
 func (t *Turret) Draw(screen *ebiten.Image) {
-	t.base.Draw(t.opts, screen)
-	t.gun.Draw(t.opts, screen)
+	t.Base.Draw(t.opts, screen)
+	t.Gun.Draw(t.opts, screen)
 }

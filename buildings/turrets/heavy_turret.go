@@ -7,39 +7,40 @@ import (
 	"math"
 )
 
-type lightTurretGun struct {
+type heavyTurretGun struct {
 	image         *ebiten.Image
 	upgradeButton *ebiten.Image
 	level         int
 }
 
-func (d *lightTurretGun) GetUpgradeButton() *ebiten.Image {
-	return d.upgradeButton
+func (l *heavyTurretGun) GetUpgradeButton() *ebiten.Image {
+	return l.upgradeButton
 }
 
-func (l *lightTurretGun) UpgradeCost() int {
+func (l *heavyTurretGun) UpgradeCost() int {
 	if l.level == 4 {
 		return -1
 	}
-	return 200
+	return 200 * l.level
 }
-func (l *lightTurretGun) Upgrade() {
+
+func (l *heavyTurretGun) Upgrade() {
 	switch l.level {
 	case 1:
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_2)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_2)
 	case 2:
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_3)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_3)
 	case 3:
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_4)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_4)
 	default:
 		panic("Should never get here")
 	}
 	l.level++
 }
-func (l *lightTurretGun) Update(target game.Targetable) {
+func (l *heavyTurretGun) Update(target game.Targetable) {
 
 }
-func (l *lightTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
+func (l *heavyTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
 	mouseX, mouseY := ebiten.CursorPosition()
 	baseX, baseY := dst.GeoM.Element(0, 2), dst.GeoM.Element(1, 2)
 
@@ -58,14 +59,14 @@ func (l *lightTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image
 
 }
 
-func newLightTurretGun() *lightTurretGun {
-	return &lightTurretGun{
-		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_1),
-		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiLightTurretUpgrade),
+func newHeavyTurretGun() *heavyTurretGun {
+	return &heavyTurretGun{
+		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_1),
+		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiHeavyTurretUpgrade),
 		level:         1,
 	}
 }
 
-func NewLightTurret(x, y int) *Turret {
-	return NewTurret(x, y, newLightTurretGun(), newDefaultBase())
+func NewHeavyTurret(x, y int) *Turret {
+	return NewTurret(x, y, newHeavyTurretGun(), newDefaultBase())
 }

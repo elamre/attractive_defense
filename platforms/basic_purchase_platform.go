@@ -4,7 +4,6 @@ import (
 	"github.com/elamre/attractive_defense/assets"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type CanPurchasePlatform struct {
@@ -37,7 +36,7 @@ func (p *PurchasePlatform) SetForDeletion(g *world.Grid) {
 }
 
 func (p *PurchasePlatform) Update(g *world.Grid) {
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	/*if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if x > p.pixelX && y > p.pixelY {
 			if x < p.pixelX+64 && y < p.pixelY+64 {
@@ -45,7 +44,7 @@ func (p *PurchasePlatform) Update(g *world.Grid) {
 				g.SetGrid(p.x, p.y, world.GridLevelGui, nil)
 			}
 		}
-	}
+	}*/
 }
 
 func (p *PurchasePlatform) Draw(image *ebiten.Image) {
