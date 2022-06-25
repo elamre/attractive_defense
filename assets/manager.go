@@ -56,6 +56,8 @@ const (
 	AssetsGuiWarningLevelLow    = "AssetsGuiWarningLevelLow"
 	AssetsGuiWarningLevelMedium = "AssetsGuiWarningLevelMedium"
 	AssetsGuiWarningLevelHigh   = "AssetsGuiWarningLevelHigh"
+
+	AssetsPlayerCrystalAnim = "AssetsPlayerCrystal"
 )
 
 var manager *tentsuyu.AssetsManager
@@ -78,7 +80,7 @@ func GetManager() *tentsuyu.AssetsManager {
 		manager.AssetMap[AssetsMagnet] = spriteset.SubImage(image.Rect(8*64, 0, 64+8*64, 64)).(*ebiten.Image)
 		manager.AssetMap[AssetsPlatformImage] = spriteset.SubImage(image.Rect(6*64, 0, 64+6*64, 64)).(*ebiten.Image)
 		manager.AssetMap[AssetsPlusSymbol] = spriteset.SubImage(image.Rect(7*64, 0, 64+7*64, 64)).(*ebiten.Image)
-		manager.AssetMap[AssetsTurretGun_light_bullet] = spriteset.SubImage(image.Rect(4*64, 1*64, 64+4*64, 1*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_light_bullet] = spriteset.SubImage(image.Rect(4*64+27, 1*64+29, 4*64+35, 1*64+34)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_light_1] = spriteset.SubImage(image.Rect(0*64, 1*64, 64+0*64, 1*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_light_2] = spriteset.SubImage(image.Rect(1*64, 1*64, 64+1*64, 1*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_light_3] = spriteset.SubImage(image.Rect(2*64, 1*64, 64+2*64, 1*64+64)).(*ebiten.Image)
@@ -99,6 +101,14 @@ func GetManager() *tentsuyu.AssetsManager {
 			mm := manager.AssetMap[AssetsGuiSelectAnim].([]*ebiten.Image)
 			mm = append(mm, img)
 			manager.AssetMap[AssetsGuiSelectAnim] = mm
+		}
+
+		manager.AssetMap[AssetsPlayerCrystalAnim] = make([]*ebiten.Image, 0)
+		for i := 0; i < 8; i++ {
+			img := spriteset.SubImage(image.Rect(i*64, 11*64, 64+i*64, 11*64+64)).(*ebiten.Image)
+			mm := manager.AssetMap[AssetsPlayerCrystalAnim].([]*ebiten.Image)
+			mm = append(mm, img)
+			manager.AssetMap[AssetsPlayerCrystalAnim] = mm
 		}
 
 		manager.AssetMap[AssetsGuiTopPart] = spriteset.SubImage(image.Rect(10*64, 6*64, 64+11*64, 7*64+64)).(*ebiten.Image)

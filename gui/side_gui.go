@@ -84,6 +84,9 @@ func (s *SideGui) Update(p *game.Player, g *world.Grid, camera *Camera) {
 			if index < len(s.buttonArray) {
 				s.buttonArray[index].selected(p, s, g)
 			}
+			if e := g.GetGridEntity(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures); e != nil {
+				s.SetBuildingSelectedContext(p, e)
+			}
 		} else {
 			cMx, cMy := camera.ScreenToWorld(mx, my)
 			x, y := g.MouseToGridPos(int(cMx), int(cMy))
@@ -93,7 +96,6 @@ func (s *SideGui) Update(p *game.Player, g *world.Grid, camera *Camera) {
 					// This should be much better TODO
 					platforms.NewPlatformAt(x, y, g)
 					g.SetGrid(x, y, world.GridLevelGui, nil)
-
 				}
 			}
 			if x != -1 && y != -1 {

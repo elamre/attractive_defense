@@ -5,12 +5,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Projectable interface {
+type ProjectoryInterface interface {
 	GetHitBox() *tentsuyu.Rectangle
-	Destroy() bool
+	IsAlive() bool
 	Update()
 	Draw(image *ebiten.Image)
-	GetBaseProjectile() *BaseProjectile
+	GetProjectileEffect() *ProjectileEffect
 }
 
 type ProjectileEffect struct {
