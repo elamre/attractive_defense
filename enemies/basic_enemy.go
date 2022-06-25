@@ -4,7 +4,6 @@ import (
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/projectory"
 	"github.com/elamre/attractive_defense/world"
-	"github.com/elamre/tentsuyu/tentsuyutils"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -20,10 +19,10 @@ func (b *BasicEnemy) SetTarget(target game.Targetable) {
 }
 
 func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *projectory.ProjectoryManager) {
-	if b.target != nil {
+	/*	if b.target != nil {
 		tX, tY
 		tentsuyutils.Distance()
-	}
+	}*/
 }
 
 func (b *BasicEnemy) IsAlive() bool {
