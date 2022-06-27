@@ -49,6 +49,8 @@ type Grid struct {
 	selectionImageCount int
 
 	ProjectoryMng *ProjectoryManager
+
+	GridChangeCallback func(x, y, z int, entity GridEntity)
 }
 
 func NewGrid(width, height, levels int) Grid {
@@ -155,7 +157,9 @@ func (g *Grid) ClosestBuilding(gridX, gridY int) GridEntity {
 
 func (g *Grid) SetGrid(x, y, z int, entity GridEntity) {
 	idx := ((g.Height * g.Width * z) + g.Width*y) + x
-
+	if g.GridChangeCallback != nil {
+		g.GridChangeCallback(x, y, z, entity)
+	}
 	if z == GridLevelStructures {
 		if entity == nil {
 			ee := g.fields[idx]

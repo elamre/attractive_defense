@@ -52,8 +52,22 @@ func (t *Turret) GetPixelCoordinates() (x, y int) {
 	return t.x * 64, t.y * 64
 }
 
+func (t *Turret) CheckAndSetTarget(enemyInterface enemies.EnemyInterface) {
+	x, y := enemyInterface.GetPixelPosition()
+	distance := tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, float64(x), float64(y))
+	if t.EnemyTarget != nil {
+		curX, curY := enemyInterface.GetPixelPosition()
+		curDistance := tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, float64(curX), float64(curY))
+		if distance < curDistance {
+			t.EnemyTarget = enemyInterface
+		}
+	} else if distance <= 200 {
+		t.EnemyTarget = enemyInterface
+	}
+}
+
 func (t *Turret) Trigger(x, y int, other interface{}) {
-	t.EnemyTarget = other.(enemies.EnemyInterface)
+	t.CheckAndSetTarget(other.(enemies.EnemyInterface))
 }
 
 func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface, g *world.Grid) *Turret {

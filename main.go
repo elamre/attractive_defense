@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/elamre/attractive_defense/assets"
-	"github.com/elamre/attractive_defense/buildings"
+	"github.com/elamre/attractive_defense/buildings/turrets"
 	"github.com/elamre/attractive_defense/enemies"
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/gui"
@@ -26,6 +26,40 @@ type AD struct {
 }
 
 var stars game.StarBackground
+
+func NewAttractiveDefense(width, height int) *AD {
+
+	grid := world.NewGrid(width, height, 3)
+	projectory := world.NewProjectoryManager()
+	enemyManager := enemies.NewEnemyManager()
+	player := game.NewPlayer()
+	sideGui := gui.NewSideGui(800-128, 0)
+	camera := gui.Camera{ViewPort: f64.Vec2{800, 600}}
+
+	grid.GridChangeCallback = func(x, y, z int, entity world.GridEntity) {
+		if z == world.GridLevelStructures {
+			if entity != nil {
+				if turret, ok := entity.(*turrets.Turret); ok {
+					for i := range enemyManager.Entities {
+						turret.CheckAndSetTarget(*enemyManager.Entities[i])
+					}
+				}
+			}
+		}
+	}
+
+	ad := AD{
+		g:                 &grid,
+		p:                 player,
+		gui2:              sideGui,
+		world:             ebiten.NewImage(width*64, height*64),
+		camera:            camera,
+		projectoryManager: projectory,
+		enemyManager:      enemyManager,
+	}
+
+	return &ad
+}
 
 func (ad *AD) Update() error {
 	stars.Update()
@@ -71,21 +105,9 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 	assets.GetManager()
 	stars = game.NewStarBackground(300, 20*64, 16*64)
-	g := world.NewGrid(20, 16, 3)
-	g.SetGrid(5, 5, world.GridLevelStructures, buildings.NewLifeCrystal(5, 5, &g))
-	p := world.NewProjectoryManager()
-	g.ProjectoryMng = p
-	ad := AD{&g,
-		game.NewPlayer(),
-		gui.NewSideGui(800-128, 0),
-		ebiten.NewImage(20*64, 16*64),
-		gui.Camera{ViewPort: f64.Vec2{800, 600}},
-		p,
-		enemies.NewEnemyManager()}
-
 	defer assets.CleanUp()
 	ebiten.SetWindowSize(800, 600)
-	if err := ebiten.RunGame(&ad); err != nil {
+	if err := ebiten.RunGame(NewAttractiveDefense(20, 16)); err != nil {
 		panic(err)
 	}
 }
