@@ -14,7 +14,7 @@ func NewLightTurretButton() *Button {
 		cost:  LightTurretCost,
 		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
 			if IsBuildable(g) {
-				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, turrets.NewLightTurret(g.SelectedGridX, g.SelectedGridY))
+				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, turrets.NewLightTurret(g.SelectedGridX, g.SelectedGridY, g))
 				return true
 			}
 			return false

@@ -14,6 +14,7 @@ type defaultBase struct {
 
 func newDefaultBase() *defaultBase {
 	return &defaultBase{
+		health:        50,
 		image:         assets.Get[*ebiten.Image](assets.AssetsTurretBase_1),
 		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiBaseUpgrade),
 		level:         1,
@@ -48,6 +49,11 @@ func (d *defaultBase) Upgrade() {
 func (d *defaultBase) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
 	screen.DrawImage(d.image, dst)
 }
-func (d *defaultBase) TakeDamage(damage int) bool {
-	return false // we can not get destroyed yet
+
+func (d *defaultBase) GetHealth() int {
+	return d.health
+}
+
+func (d *defaultBase) TakeDamage(damage int) {
+	d.health -= damage
 }

@@ -15,6 +15,7 @@ type LifeCrystal struct {
 	pixelX, pixelY   int
 	x, y             int
 	animCntDirection int
+	life             int
 }
 
 func (b *LifeCrystal) SetForDeletion(g *world.Grid) {
@@ -39,6 +40,21 @@ func (b *LifeCrystal) Update(g *world.Grid) {
 
 }
 
+func (b *LifeCrystal) InflictDamage(damage int) {
+	b.life -= damage
+	if b.life < 0 {
+		b.life = 0
+		// TODO
+	}
+}
+func (b *LifeCrystal) Alive() bool {
+	return b.life > 0
+}
+
+func (b *LifeCrystal) GetPixelCoordinates() (int, int) {
+	return b.pixelX, b.pixelY
+}
+
 func (b *LifeCrystal) Draw(image *ebiten.Image) {
 	image.DrawImage(b.anim[b.animCnt], b.drawOpt)
 }
@@ -51,6 +67,7 @@ func NewLifeCrystal(x, y int, g *world.Grid) *LifeCrystal {
 		y:                y,
 		anim:             assets.Get[[]*ebiten.Image](assets.AssetsPlayerCrystalAnim),
 		animCntDirection: 1,
+		life:             1000,
 	}
 
 	l.drawOpt = &ebiten.DrawImageOptions{}
@@ -58,8 +75,8 @@ func NewLifeCrystal(x, y int, g *world.Grid) *LifeCrystal {
 	g.AddMagnetism(x, y)
 	g.SetGrid(x, y, world.GridLevelPlatform, platforms.NewPlatformAt(x, y, g))
 
-	for _, s := range checkSurroundings {
-		cX, cY := x+s.x, y+s.y
+	for _, s := range assets.Surroundings5 {
+		cX, cY := x+s.X, y+s.Y
 
 		if g.OutOfBounds(cX, cY) {
 			continue

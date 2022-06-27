@@ -1,4 +1,4 @@
-package projectory
+package world
 
 import (
 	"github.com/elamre/attractive_defense/assets"
@@ -8,6 +8,7 @@ import (
 )
 
 type BasicProjectile struct {
+	damages        ProjectileEffect
 	speed          float64
 	pixelX, pixelY float64
 	dX, dY         float64
@@ -20,8 +21,9 @@ type BasicProjectile struct {
 
 func NewBasicProjectile(startPixelX, startPixelY, targetPixelX, targetPixelY float64) *BasicProjectile {
 	b := BasicProjectile{
-		speed: 3,
-		image: assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_bullet),
+		damages: ProjectileEffect{Damage: 5},
+		speed:   5,
+		image:   assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_bullet),
 	}
 	mouseXFloat := startPixelX - targetPixelX
 	mouseYFloat := startPixelY - targetPixelY
@@ -52,10 +54,12 @@ func (b *BasicProjectile) Update() {
 	b.pixelY += travelY
 	b.dst.GeoM.Translate(travelX, travelY)
 	b.lifeCounter++
+	b.hitBox.X = b.pixelX
+	b.hitBox.Y = b.pixelY
 }
 func (b *BasicProjectile) Draw(image *ebiten.Image) {
 	image.DrawImage(b.image, &b.dst)
 }
 func (b *BasicProjectile) GetProjectileEffect() *ProjectileEffect {
-	return nil
+	return &b.damages
 }

@@ -1,8 +1,7 @@
-package projectory
+package world
 
 import (
 	"github.com/elamre/attractive_defense/assets"
-	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -27,16 +26,21 @@ func (p *ProjectoryManager) AddPlayerProjectile(projectile ProjectoryInterface) 
 	p.playerProjectiles.AddEntity(&projectile)
 }
 
-func (p *ProjectoryManager) Update(g *world.Grid) {
+func (p *ProjectoryManager) Update(g *Grid) {
 	for i := range p.enemyProjectiles.Entities {
 		e := *p.enemyProjectiles.Entities[i]
 		e.Update()
 		x, y := int(e.GetHitBox().X), int(e.GetHitBox().Y)
+		gridX, gridY := x/64, y/64
 		if !e.IsAlive() {
-			p.enemyProjectiles.SetForRemoval(&e)
-		} else if g.GetGridEntity(x/64, y/64, world.GridLevelStructures) != nil {
-			if e.GetHitBox().Contains(float64(x+32), float64(y+32)) {
-				p.enemyProjectiles.SetForRemoval(&e)
+			p.enemyProjectiles.SetForRemoval(p.enemyProjectiles.Entities[i])
+		} else if ee := g.GetGridEntity(x/64, y/64, GridLevelStructures); ee != nil {
+			trg := ee.(BuildingInterface)
+			if x > gridX*64+16 && x < gridX*64+64-16 {
+				if y > gridY*64+16 && y < gridY*64+64-16 {
+					trg.InflictDamage(e.GetProjectileEffect().Damage)
+					p.enemyProjectiles.SetForRemoval(p.enemyProjectiles.Entities[i])
+				}
 			}
 		}
 	}

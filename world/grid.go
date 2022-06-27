@@ -1,10 +1,10 @@
 package world
 
 import (
-	"fmt"
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/go_helpers/pkg/slice_helpers"
+	"github.com/elamre/tentsuyu/tentsuyutils"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
@@ -22,14 +22,33 @@ type GridEntity interface {
 	Draw(*ebiten.Image)
 }
 
+type GridPos struct {
+	PosX, PosY, PosZ int
+}
+
+func (g *GridPos) compare(other interface{}) int {
+	return 0
+}
+
+type TriggerAble interface {
+	Trigger(x, y int, other interface{})
+}
+
 type Grid struct {
+	buildings                    *assets.EntityManager[*GridEntity]
 	width, height, levels        int
 	fields                       []GridEntity
+	triggerFields                [][]*TriggerAble
+	entityToField                map[GridEntity]GridPos
+	entityToEntityPtr            map[GridEntity]*GridEntity
 	magnetism                    []int
+	triggered                    []int
 	SelectedGridX, SelectedGridY int
 
 	selectionImage      []*ebiten.Image
 	selectionImageCount int
+
+	ProjectoryMng *ProjectoryManager
 }
 
 func NewGrid(width, height, levels int) Grid {
@@ -37,13 +56,44 @@ func NewGrid(width, height, levels int) Grid {
 		width:               width,
 		height:              height,
 		levels:              levels,
+		buildings:           assets.NewEntityManager[*GridEntity](),
 		fields:              make([]GridEntity, width*height*levels),
+		triggerFields:       make([][]*TriggerAble, width*height),
+		entityToField:       make(map[GridEntity]GridPos),
+		entityToEntityPtr:   make(map[GridEntity]*GridEntity),
 		magnetism:           make([]int, width*height),
+		triggered:           make([]int, width*height),
 		SelectedGridX:       -1,
 		SelectedGridY:       -1,
 		selectionImage:      assets.Get[[]*ebiten.Image](assets.AssetsGuiSelectAnim),
 		selectionImageCount: 0,
 	}
+}
+
+func (g *Grid) AddTriggerFunc(x, y int, trigger TriggerAble) {
+	idx := (g.width * y) + x
+	if g.triggerFields[idx] == nil {
+		g.triggerFields[idx] = make([]*TriggerAble, 0)
+	}
+	g.triggerFields[idx] = append(g.triggerFields[idx], &trigger)
+}
+
+func (g *Grid) RemoveTrigger(x, y int, trigger TriggerAble) {
+	idx := (g.width * y) + x
+	g.triggerFields[idx] = slice_helpers.RemoveFromList[*TriggerAble](&trigger, g.triggerFields[idx])
+}
+
+func (g *Grid) TestTrigger(x, y int, ent interface{}) bool {
+	idx := (g.width * y) + x
+	if ar := g.triggerFields[idx]; ar != nil {
+		for i := range ar {
+			g.triggered[idx]++
+
+			(*ar[i]).Trigger(x, y, ent)
+		}
+		return true
+	}
+	return false
 }
 
 func (g *Grid) AddMagnetism(posX, posY int) {
@@ -84,8 +134,44 @@ func (g *Grid) OutOfBounds(x, y int) bool {
 	return x < 0 || x > g.width-1 || y < 0 || y > g.height-1
 }
 
+func (g *Grid) ClosestBuilding(gridX, gridY int) GridEntity {
+	var closest GridEntity
+	distance := float64(1000000)
+
+	for e := range g.buildings.Entities {
+		ee := *g.buildings.Entities[e]
+		gg := g.entityToField[ee]
+		dst := tentsuyutils.Distance(float64(gridX), float64(gridY), float64(gg.PosX), float64(gg.PosY))
+		if dst < distance {
+			distance = dst
+			closest = ee
+		}
+	}
+	return closest
+}
+
 func (g *Grid) SetGrid(x, y, z int, entity GridEntity) {
 	idx := ((g.height * g.width * z) + g.width*y) + x
+
+	if z == GridLevelStructures {
+		if entity == nil {
+			ee := g.fields[idx]
+			g.buildings.SetForRemoval(g.entityToEntityPtr[g.fields[idx]])
+			g.buildings.CleanDeadEntities()
+			delete(g.entityToField, ee)
+			delete(g.entityToEntityPtr, g.fields[idx])
+
+		} else {
+			g.entityToField[entity] = GridPos{
+				PosX: x,
+				PosY: y,
+				PosZ: z,
+			}
+			g.entityToEntityPtr[entity] = &entity // TODO this is super shit
+			g.buildings.AddEntity(&entity)
+
+		}
+	}
 	g.fields[idx] = entity
 }
 
@@ -138,7 +224,9 @@ func (g *Grid) DrawGrid(screen *ebiten.Image) {
 	}
 	for y := 0; y < g.height; y++ {
 		for x := 0; x < g.width; x++ {
-			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", g.magnetism[y*g.width+x]), x*64, y*64)
+			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", g.magnetism[y*g.width+x]), x*64, y*64)
+			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", len(g.triggerFields[y*g.width+x])), x*64, y*64+12)
+			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", (g.triggered[y*g.width+x])), x*64+24, y*64+12)
 		}
 	}
 }

@@ -4,6 +4,7 @@ github.com/blizzy78/ebitenui v0.0.0-20211114161546-ca1a302d930b/go.mod h1:a3S/Qz
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/elamre/debug_gui v0.0.0-20220420112516-e9315ad26b05/go.mod h1:2CYdV0TPUs90cYWMbfXM9WC21BF0k7D/9My2rrm6y/Y=
+github.com/elamre/go_helpers v0.0.3 h1:H30z8yt3yvKn2pE5eRpJZIBNDSNxEyT5mgyYJuWw2To=
 github.com/elamre/go_helpers v0.0.3/go.mod h1:5smCC4LY3TPtzAvLROqbCKxehFg2kdWoMSkm9/SAyNc=
 github.com/elamre/logger v1.0.0/go.mod h1:IcGN23bdbBXD6Gh+1DKedNwG1bcexA0l1rDno+5dn/k=
 github.com/elamre/tentsuyu v0.3.0 h1:wWI4zjn0bC9GKCw67G87GznXTIDsJd+juXzPE2E+A6w=

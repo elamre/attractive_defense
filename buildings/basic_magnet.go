@@ -7,21 +7,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var checkSurroundings = []struct{ x, y int }{
-	{x: -1, y: 0},
-	{x: 1, y: 0},
-	{x: 0, y: 1},
-	{x: 0, y: -1},
-	{x: -2, y: 0},
-	{x: 2, y: 0},
-	{x: 0, y: 2},
-	{x: 0, y: -2},
-	{x: 1, y: 1},
-	{x: -1, y: 1},
-	{x: 1, y: -1},
-	{x: -1, y: -1},
-}
-
 type BasicMagnet struct {
 	magnetBase           *ebiten.Image
 	Magnet               *ebiten.Image
@@ -30,6 +15,22 @@ type BasicMagnet struct {
 	magnetOpt            *ebiten.DrawImageOptions
 	rotation             float64
 	deleted              bool
+	life                 int
+}
+
+func (b *BasicMagnet) InflictDamage(damage int) {
+	b.life -= damage
+	if b.life < 0 {
+		b.life = 0
+		b.deleted = true
+	}
+}
+func (b *BasicMagnet) Alive() bool {
+	return b.life > 0
+}
+
+func (b *BasicMagnet) GetPixelCoordinates() (int, int) {
+	return b.pixelX, b.pixelY
 }
 
 func (b *BasicMagnet) SetForDeletion(g *world.Grid) {
@@ -39,8 +40,8 @@ func (b *BasicMagnet) SetForDeletion(g *world.Grid) {
 	b.deleted = true
 
 	// We only deduct the magnetism
-	for _, s := range checkSurroundings {
-		cX, cY := b.x+s.x, b.y+s.y
+	for _, s := range assets.Surroundings5 {
+		cX, cY := b.x+s.X, b.y+s.Y
 
 		if g.OutOfBounds(cX, cY) {
 			continue
@@ -80,8 +81,8 @@ func NewBasicMagnet(x, y int, g *world.Grid) *BasicMagnet {
 	b.MagnetBaseOpt.GeoM.Translate(float64(b.pixelX), float64(b.pixelY))
 	g.AddMagnetism(x, y)
 
-	for _, s := range checkSurroundings {
-		cX, cY := x+s.x, y+s.y
+	for _, s := range assets.Surroundings5 {
+		cX, cY := x+s.X, y+s.Y
 
 		if g.OutOfBounds(cX, cY) {
 			continue
@@ -89,8 +90,8 @@ func NewBasicMagnet(x, y int, g *world.Grid) *BasicMagnet {
 		g.AddMagnetism(cX, cY)
 		if g.IsEmpty(cX, cY) {
 			boolCanPurchase := false
-			for _, cc := range checkSurroundings[:4] {
-				ccX, ccY := cX+cc.x, cY+cc.y
+			for _, cc := range assets.Surroundings5[:4] {
+				ccX, ccY := cX+cc.X, cY+cc.Y
 				if g.OutOfBounds(ccX, ccY) {
 					continue
 				}

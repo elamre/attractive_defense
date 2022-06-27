@@ -128,6 +128,8 @@ func GetManager() *tentsuyu.AssetsManager {
 
 		manager.AssetMap[AssetsGuiMagnet] = spriteset.SubImage(image.Rect(0*64, 8*64, 59+0*64, 8*64+64)).(*ebiten.Image)
 
+		manager.AssetMap[AssetsEnemy] = spriteset.SubImage(image.Rect(0*64, 3*64, 64+0*64, 3*64+64)).(*ebiten.Image)
+
 		deferList = append(deferList, func() {
 
 		})

@@ -2,9 +2,8 @@ package turrets
 
 import (
 	"github.com/elamre/attractive_defense/assets"
-	"github.com/elamre/attractive_defense/game"
+	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
-	"math"
 )
 
 type lightTurretGun struct {
@@ -36,25 +35,11 @@ func (l *lightTurretGun) Upgrade() {
 	}
 	l.level++
 }
-func (l *lightTurretGun) Update(target game.Targetable) {
+func (l *lightTurretGun) Update(target world.Targetable) {
 
 }
 func (l *lightTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
-	mouseX, mouseY := ebiten.CursorPosition()
-	baseX, baseY := dst.GeoM.Element(0, 2), dst.GeoM.Element(1, 2)
-
-	op := &ebiten.DrawImageOptions{}
-	mouseXFloat := float64(mouseX) - float64(baseX+32)
-	mouseYFloat := float64(mouseY) - float64(baseY+32)
-
-	angle := math.Atan2(mouseYFloat, mouseXFloat)
-
-	op.GeoM.Translate(-64/2, -64/2)
-	op.GeoM.Rotate(angle)
-	op.GeoM.Translate(64/2, 64/2)
-	// Place at correct position
-	op.GeoM.Translate(float64(baseX), float64(baseY))
-	screen.DrawImage(l.image, op)
+	screen.DrawImage(l.image, dst)
 
 }
 
@@ -66,6 +51,6 @@ func newLightTurretGun() *lightTurretGun {
 	}
 }
 
-func NewLightTurret(x, y int) *Turret {
-	return NewTurret(x, y, newLightTurretGun(), newDefaultBase())
+func NewLightTurret(x, y int, g *world.Grid) *Turret {
+	return NewTurret(x, y, newLightTurretGun(), newDefaultBase(), g)
 }

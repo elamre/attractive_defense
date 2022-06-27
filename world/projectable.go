@@ -1,4 +1,4 @@
-package projectory
+package world
 
 import (
 	"github.com/elamre/tentsuyu"
