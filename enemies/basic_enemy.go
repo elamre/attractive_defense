@@ -1,7 +1,6 @@
 package enemies
 
 import (
-	"github.com/elamre/attractive_defense/assets"
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/elamre/tentsuyu"
@@ -25,30 +24,6 @@ type BasicEnemy struct {
 	shootCounter   int
 }
 
-func InitEnemyImages() {
-	scoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemy)
-}
-
-var scoutEnemyTurretEasy EnemyTurretSpecifications = EnemyTurretSpecifications{
-	reloadSpeed: 10,
-	targetRange: 60,
-	shoot: func(pixelX, pixelY, targetX, targetY float64, manager *world.ProjectoryManager) {
-		manager.AddEnemyProjectile(world.NewBasicProjectile(pixelX, pixelY, targetX, targetY))
-	},
-}
-
-var scoutEnemyHull EnemyHullSpecifications = EnemyHullSpecifications{
-	image:     nil,
-	maxSpeed:  3,
-	width:     0,
-	height:    0,
-	maxHealth: 0,
-}
-
-func NewScoutEnemy(pixelX, pixelY float64) EnemyInterface {
-	return NewBasicEnemy(pixelX, pixelY, &scoutEnemyTurretEasy, &scoutEnemyHull)
-}
-
 func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hull *EnemyHullSpecifications) EnemyInterface {
 	b := BasicEnemy{
 		EnemyHullSpecifications:   hull,
@@ -59,7 +34,7 @@ func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hu
 		prevY:                     int(pixelY / 64),
 		curSpeed:                  3,
 		health:                    20,
-		hitbox:                    tentsuyu.Rectangle{W: 32, H: 32},
+		hitbox:                    tentsuyu.Rectangle{W: hull.width, H: hull.height},
 	}
 	return &b
 }

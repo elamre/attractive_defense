@@ -22,6 +22,7 @@ type EnemyHullSpecifications struct {
 	width     int
 	height    int
 	maxHealth int
+	maxShield int
 }
 
 type EnemyTurretSpecifications struct {

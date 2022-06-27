@@ -37,34 +37,42 @@ var waves = []Wave{
 	{
 		[]WaveContent{
 			{
-				12,
+				4,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewScoutEnemy(pixelX, pixelY)
 				},
 			},
 			{
-				12,
+				2,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewShieldedScoutEnemy(pixelX, pixelY)
+				},
+			},
+		},
+	},
+	{
+		[]WaveContent{
+			{
+				4,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewScoutEnemy(pixelX, pixelY)
+				},
+			},
+			{
+				4,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewShieldedScoutEnemy(pixelX, pixelY)
+				},
+			},
+			{
+				2,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewHeavyScoutEnemy(pixelX, pixelY)
 				},
 			},
 		},
 	},
 }
-
-/*var Waves []Wave = []Wave{[]WaveContent{
-	amount: 4,
-	spawn: func(pixelX, pixelY float64) EnemyInterface {
-		return NewScoutEnemy(pixelX, pixelY)
-	},
-},
-	{
-		amount: 12,
-		spawn: func(pixelX, pixelY float64) EnemyInterface {
-			return NewScoutEnemy(pixelX, pixelY)
-		},
-	},
-}*/
 
 func NewEnemyManager() *EnemyManager {
 	InitEnemyImages()

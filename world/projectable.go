@@ -15,6 +15,7 @@ type ProjectoryInterface interface {
 }
 
 type ProjectileEffect struct {
+	Speed              float64
 	Homing             bool
 	Damage             int
 	DamageRadius       int

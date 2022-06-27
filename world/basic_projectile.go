@@ -8,8 +8,7 @@ import (
 )
 
 type BasicProjectile struct {
-	damages        ProjectileEffect
-	speed          float64
+	damages        *ProjectileEffect
 	pixelX, pixelY float64
 	dX, dY         float64
 	angle          float64
@@ -19,16 +18,27 @@ type BasicProjectile struct {
 	lifeCounter    int
 }
 
+func NewSmallProjectile(startPixelX, startPixelY, targetPixelX, targetPixelY float64, effect *ProjectileEffect, lifeCounter int) *BasicProjectile {
+	b := BasicProjectile{lifeCounter: lifeCounter, image: assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_bullet), damages: effect}
+	b.calculateProjectory(startPixelX, startPixelY, targetPixelX, targetPixelY)
+	return &b
+}
+
 func NewBasicProjectile(startPixelX, startPixelY, targetPixelX, targetPixelY float64) *BasicProjectile {
 	b := BasicProjectile{
-		damages: ProjectileEffect{Damage: 5},
-		speed:   5,
-		image:   assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_bullet),
+		damages:     &ProjectileEffect{Damage: 5, Speed: 5},
+		image:       assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_bullet),
+		lifeCounter: 100,
 	}
-	mouseXFloat := startPixelX - targetPixelX
-	mouseYFloat := startPixelY - targetPixelY
+	b.calculateProjectory(startPixelX, startPixelY, targetPixelX, targetPixelY)
+	return &b
+}
 
-	b.angle = math.Atan2(mouseYFloat, mouseXFloat)
+func (b *BasicProjectile) calculateProjectory(startPixelX, startPixelY, targetPixelX, targetPixelY float64) {
+	deltaX := startPixelX - targetPixelX
+	deltaY := startPixelY - targetPixelY
+
+	b.angle = math.Atan2(deltaY, deltaX)
 
 	b.pixelX = startPixelX - 3
 	b.pixelY = startPixelY
@@ -38,22 +48,21 @@ func NewBasicProjectile(startPixelX, startPixelY, targetPixelX, targetPixelY flo
 	//
 	b.dX = math.Cos(b.angle)
 	b.dY = math.Sin(b.angle)
-	return &b
 }
 
 func (b *BasicProjectile) GetHitBox() *tentsuyu.Rectangle {
 	return b.hitBox
 }
 func (b *BasicProjectile) IsAlive() bool {
-	return b.lifeCounter < 100
+	return b.lifeCounter > 0
 }
 func (b *BasicProjectile) Update() {
-	travelX := -(b.dX * b.speed)
-	travelY := -(b.dY * b.speed)
+	travelX := -(b.dX * b.damages.Speed)
+	travelY := -(b.dY * b.damages.Speed)
 	b.pixelX += travelX
 	b.pixelY += travelY
 	b.dst.GeoM.Translate(travelX, travelY)
-	b.lifeCounter++
+	b.lifeCounter--
 	b.hitBox.X = b.pixelX
 	b.hitBox.Y = b.pixelY
 }
@@ -61,9 +70,9 @@ func (b *BasicProjectile) Draw(image *ebiten.Image) {
 	image.DrawImage(b.image, &b.dst)
 }
 func (b *BasicProjectile) GetProjectileEffect() *ProjectileEffect {
-	return &b.damages
+	return b.damages
 }
 
 func (b *BasicProjectile) Impact() {
-	b.lifeCounter = 100
+	b.lifeCounter = 0
 }
