@@ -7,6 +7,7 @@ import (
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/gui"
 	"github.com/elamre/attractive_defense/world"
+	"github.com/elamre/gameutil"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/math/f64"
@@ -24,7 +25,10 @@ type AD struct {
 	enemyManager      *enemies.EnemyManager
 }
 
+var stars game.StarBackground
+
 func (ad *AD) Update() error {
+	stars.Update()
 	ad.camera.Update()
 	ad.g.UpdateGrid()
 	ad.p.UpdatePlayer(ad.g)
@@ -32,10 +36,12 @@ func (ad *AD) Update() error {
 	ad.projectoryManager.Update(ad.g)
 	ad.enemyManager.Update(ad.g, ad.p, ad.projectoryManager)
 	x, y := ebiten.CursorPosition()
-	/*	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-		cMx, cMy := ad.camera.ScreenToWorld(x, y)
-		ad.projectoryManager.AddPlayerProjectile(projectory.NewBasicProjectile(cMx, cMy, 5*64+32, 5*64+32))
-	}*/
+
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		if ad.enemyManager.ShouldSpawn() {
+			ad.enemyManager.Spawn(ad.g, ad.gui2.NoticeLevel)
+		}
+	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		cMx, cMy := ad.camera.ScreenToWorld(x, y)
 		t := ad.g.ClosestBuilding(int(cMx/64), int(cMy/64))
@@ -46,6 +52,7 @@ func (ad *AD) Update() error {
 }
 
 func (ad *AD) Draw(screen *ebiten.Image) {
+	stars.Draw(ad.world)
 	ad.g.DrawGrid(ad.world)
 	ad.enemyManager.Draw(ad.world)
 	ad.projectoryManager.Draw(ad.world)
@@ -61,8 +68,10 @@ func (ad *AD) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight
 }
 
 func main() {
+	gameutil.InitPixel()
 	log.SetFlags(log.Lshortfile)
 	assets.GetManager()
+	stars = game.NewStarBackground(300, 20*64, 16*64)
 	g := world.NewGrid(20, 16, 3)
 	g.SetGrid(5, 5, world.GridLevelStructures, buildings.NewLifeCrystal(5, 5, &g))
 	p := world.NewProjectoryManager()

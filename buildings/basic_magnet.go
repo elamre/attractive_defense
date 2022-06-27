@@ -15,6 +15,7 @@ type BasicMagnet struct {
 	magnetOpt            *ebiten.DrawImageOptions
 	rotation             float64
 	deleted              bool
+	setForDeletion       bool
 	life                 int
 }
 
@@ -22,7 +23,7 @@ func (b *BasicMagnet) InflictDamage(damage int) {
 	b.life -= damage
 	if b.life < 0 {
 		b.life = 0
-		b.deleted = true
+		b.setForDeletion = true
 	}
 }
 func (b *BasicMagnet) Alive() bool {
@@ -34,27 +35,22 @@ func (b *BasicMagnet) GetPixelCoordinates() (int, int) {
 }
 
 func (b *BasicMagnet) SetForDeletion(g *world.Grid) {
-	if b.deleted {
-		return
-	}
-	b.deleted = true
-
-	// We only deduct the magnetism
-	for _, s := range assets.Surroundings5 {
-		cX, cY := b.x+s.X, b.y+s.Y
-
-		if g.OutOfBounds(cX, cY) {
-			continue
-		}
-		g.RemoveMagnetism(cX, cY)
-	}
-	g.RemoveMagnetism(b.x, b.y)
-
+	b.setForDeletion = true
 }
 
 func (b *BasicMagnet) Update(g *world.Grid) {
-	if b.deleted {
+	if !b.deleted && b.setForDeletion {
 		g.SetGrid(b.x, b.y, world.GridLevelStructures, nil)
+		for _, s := range assets.Surroundings5 {
+			cX, cY := b.x+s.X, b.y+s.Y
+
+			if g.OutOfBounds(cX, cY) {
+				continue
+			}
+			g.RemoveMagnetism(cX, cY)
+		}
+		g.RemoveMagnetism(b.x, b.y)
+		b.deleted = true
 	}
 }
 

@@ -106,23 +106,28 @@ func (t *Turret) Update(g *world.Grid) {
 		}
 		g.SetGrid(t.x, t.y, world.GridLevelStructures, nil)
 	}
+
 	if t.EnemyTarget != nil {
-		t.gunOpts.GeoM.Reset()
-		enemyX, enemyY := t.EnemyTarget.GetPixelPosition()
-		eX, eY := float64(enemyX)+32, float64(enemyY)+32
-		mouseXFloat := eX - (t.pixelX + 32)
-		mouseYFloat := eY - (t.pixelY + 32)
+		if !t.EnemyTarget.IsAlive() {
+			t.EnemyTarget = nil
+		} else {
+			t.gunOpts.GeoM.Reset()
+			enemyX, enemyY := t.EnemyTarget.GetPixelPosition()
+			eX, eY := float64(enemyX)+32, float64(enemyY)+32
+			mouseXFloat := eX - (t.pixelX + 32)
+			mouseYFloat := eY - (t.pixelY + 32)
 
-		angle := math.Atan2(mouseYFloat, mouseXFloat)
+			angle := math.Atan2(mouseYFloat, mouseXFloat)
 
-		t.gunOpts.GeoM.Translate(-64/2, -64/2)
-		t.gunOpts.GeoM.Rotate(angle)
-		t.gunOpts.GeoM.Translate(64/2, 64/2)
-		t.gunOpts.GeoM.Translate(t.pixelX, t.pixelY)
-		if tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, eX, eY) < 200 {
-			if t.shootTimer == 10 {
-				t.shootTimer = 0
-				g.ProjectoryMng.AddPlayerProjectile(world.NewBasicProjectile(t.pixelX+32, t.pixelY+32, eX, eY))
+			t.gunOpts.GeoM.Translate(-64/2, -64/2)
+			t.gunOpts.GeoM.Rotate(angle)
+			t.gunOpts.GeoM.Translate(64/2, 64/2)
+			t.gunOpts.GeoM.Translate(t.pixelX, t.pixelY)
+			if tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, eX, eY) < 200 {
+				if t.shootTimer == 10 {
+					t.shootTimer = 0
+					g.ProjectoryMng.AddPlayerProjectile(world.NewBasicProjectile(t.pixelX+32, t.pixelY+32, eX, eY))
+				}
 			}
 		}
 	}

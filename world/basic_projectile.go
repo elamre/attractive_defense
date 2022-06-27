@@ -63,3 +63,7 @@ func (b *BasicProjectile) Draw(image *ebiten.Image) {
 func (b *BasicProjectile) GetProjectileEffect() *ProjectileEffect {
 	return &b.damages
 }
+
+func (b *BasicProjectile) Impact() {
+	b.lifeCounter = 100
+}

@@ -11,6 +11,7 @@ type ProjectoryInterface interface {
 	Update()
 	Draw(image *ebiten.Image)
 	GetProjectileEffect() *ProjectileEffect
+	Impact()
 }
 
 type ProjectileEffect struct {

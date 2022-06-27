@@ -19,6 +19,7 @@ type BasicEnemy struct {
 	moveVec        tentsuyu.Vector2d
 	image          *ebiten.Image
 	dst            ebiten.DrawImageOptions
+	hitbox         tentsuyu.Rectangle
 	health         int
 	distLeft       float64
 	prevX, prevY   int
@@ -36,12 +37,23 @@ func NewBasicEnemy(pixelX, pixelY float64, targetable world.BuildingInterface) E
 		speed:      3,
 		curSpeed:   3,
 		image:      assets.Get[*ebiten.Image](assets.AssetsEnemy),
-		health:     100,
+		health:     20,
+		hitbox:     tentsuyu.Rectangle{W: 32, H: 32},
 	}
 	b.SetTarget(targetable)
 	return &b
 }
-
+func (b *BasicEnemy) CheckCollision(projectoryInterface world.ProjectoryInterface) bool {
+	if projectoryInterface.IsAlive() {
+		c := projectoryInterface.GetHitBox()
+		if b.hitbox.Contains(c.X, c.Y) {
+			projectoryInterface.Impact()
+			b.health -= projectoryInterface.GetProjectileEffect().Damage
+			return true
+		}
+	}
+	return false
+}
 func (b *BasicEnemy) GetTarget() world.Targetable {
 	return b.target
 }
@@ -72,6 +84,8 @@ func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *wo
 	travelY := b.moveVec.Y * b.curSpeed
 	b.pixelX += travelX
 	b.pixelY += travelY
+	b.hitbox.X = b.pixelX + 16
+	b.hitbox.Y = b.pixelY + 16
 	b.dst.GeoM.Translate(travelX, travelY)
 	b.distLeft -= b.moveVec.Length() * b.speed
 	if b.distLeft < b.shootRange {
