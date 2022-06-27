@@ -11,13 +11,12 @@ import (
 )
 
 type BasicEnemy struct {
-	speed          float64
+	*EnemyHullSpecifications
+	*EnemyTurretSpecifications
 	curSpeed       float64
 	pixelX, pixelY float64
-	shootRange     float64
 	target         world.Targetable
 	moveVec        tentsuyu.Vector2d
-	image          *ebiten.Image
 	dst            ebiten.DrawImageOptions
 	hitbox         tentsuyu.Rectangle
 	health         int
@@ -26,21 +25,42 @@ type BasicEnemy struct {
 	shootCounter   int
 }
 
-func NewBasicEnemy(pixelX, pixelY float64, targetable world.BuildingInterface) EnemyInterface {
+func InitEnemyImages() {
+	scoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemy)
+}
+
+var scoutEnemyTurretEasy EnemyTurretSpecifications = EnemyTurretSpecifications{
+	reloadSpeed: 10,
+	targetRange: 60,
+	shoot: func(pixelX, pixelY, targetX, targetY float64, manager *world.ProjectoryManager) {
+		manager.AddEnemyProjectile(world.NewBasicProjectile(pixelX, pixelY, targetX, targetY))
+	},
+}
+
+var scoutEnemyHull EnemyHullSpecifications = EnemyHullSpecifications{
+	image:     nil,
+	maxSpeed:  3,
+	width:     0,
+	height:    0,
+	maxHealth: 0,
+}
+
+func NewScoutEnemy(pixelX, pixelY float64) EnemyInterface {
+	return NewBasicEnemy(pixelX, pixelY, &scoutEnemyTurretEasy, &scoutEnemyHull)
+}
+
+func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hull *EnemyHullSpecifications) EnemyInterface {
 	b := BasicEnemy{
-		pixelX:     pixelX,
-		pixelY:     pixelY,
-		prevX:      int(pixelX / 64),
-		prevY:      int(pixelY / 64),
-		shootRange: 60,
-		target:     targetable,
-		speed:      3,
-		curSpeed:   3,
-		image:      assets.Get[*ebiten.Image](assets.AssetsEnemy),
-		health:     20,
-		hitbox:     tentsuyu.Rectangle{W: 32, H: 32},
+		EnemyHullSpecifications:   hull,
+		EnemyTurretSpecifications: turret,
+		pixelX:                    pixelX,
+		pixelY:                    pixelY,
+		prevX:                     int(pixelX / 64),
+		prevY:                     int(pixelY / 64),
+		curSpeed:                  3,
+		health:                    20,
+		hitbox:                    tentsuyu.Rectangle{W: 32, H: 32},
 	}
-	b.SetTarget(targetable)
 	return &b
 }
 func (b *BasicEnemy) CheckCollision(projectoryInterface world.ProjectoryInterface) bool {
@@ -76,10 +96,13 @@ func (b *BasicEnemy) SetTarget(target world.Targetable) {
 	b.moveVec.Y = math.Sin(angle)
 	b.moveVec.X = math.Cos(angle)
 	b.distLeft = tentsuyutils.Distance(b.pixelX, b.pixelY, float64(tX), float64(tY))
-	b.curSpeed = b.speed
+	b.curSpeed = b.maxSpeed
 }
 
 func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *world.ProjectoryManager) {
+	if b.target == nil {
+		return
+	}
 	travelX := b.moveVec.X * b.curSpeed
 	travelY := b.moveVec.Y * b.curSpeed
 	b.pixelX += travelX
@@ -87,15 +110,16 @@ func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *wo
 	b.hitbox.X = b.pixelX + 16
 	b.hitbox.Y = b.pixelY + 16
 	b.dst.GeoM.Translate(travelX, travelY)
-	b.distLeft -= b.moveVec.Length() * b.speed
-	if b.distLeft < b.shootRange {
+	b.distLeft -= b.moveVec.Length() * b.maxSpeed
+	if b.distLeft < b.targetRange {
 		b.curSpeed = 0
 		b.shootCounter++
-		if b.shootCounter >= 10 {
+		if b.shootCounter >= b.reloadSpeed {
 			b.shootCounter = 0
 			x, y := b.target.GetPixelCoordinates()
 			x += 32
 			y += 32
+
 			projectoryManager.AddEnemyProjectile(world.NewBasicProjectile(b.pixelX+32, b.pixelY+32, float64(x), float64(y)))
 		}
 	} else {

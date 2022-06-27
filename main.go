@@ -44,8 +44,7 @@ func (ad *AD) Update() error {
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		cMx, cMy := ad.camera.ScreenToWorld(x, y)
-		t := ad.g.ClosestBuilding(int(cMx/64), int(cMy/64))
-		ad.enemyManager.AddEnemy(enemies.NewBasicEnemy(cMx, cMy, t.(world.BuildingInterface)), ad.g)
+		ad.enemyManager.AddEnemy(enemies.NewScoutEnemy(cMx, cMy), ad.g)
 	}
 	ad.gui2.InGui(x, y)
 	return nil
