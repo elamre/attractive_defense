@@ -18,7 +18,7 @@ type BasicEnemy struct {
 	moveVec        tentsuyu.Vector2d
 	dst            ebiten.DrawImageOptions
 	hitbox         tentsuyu.Rectangle
-	health         int
+	health         float64
 	distLeft       float64
 	prevX, prevY   int
 	shootCounter   int
@@ -30,8 +30,8 @@ func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hu
 		EnemyTurretSpecifications: turret,
 		pixelX:                    pixelX,
 		pixelY:                    pixelY,
-		prevX:                     int(pixelX / 64),
-		prevY:                     int(pixelY / 64),
+		prevX:                     -1,
+		prevY:                     -1,
 		curSpeed:                  3,
 		health:                    20,
 		hitbox:                    tentsuyu.Rectangle{W: hull.width, H: hull.height},

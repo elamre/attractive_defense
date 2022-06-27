@@ -8,14 +8,12 @@ import (
 )
 
 type LifeCrystal struct {
+	*world.Building
 	anim             []*ebiten.Image
 	animCnt          int
 	startAnimCnt     int
 	drawOpt          *ebiten.DrawImageOptions
-	pixelX, pixelY   int
-	x, y             int
 	animCntDirection int
-	life             int
 }
 
 func (b *LifeCrystal) SetForDeletion(g *world.Grid) {
@@ -40,38 +38,43 @@ func (b *LifeCrystal) Update(g *world.Grid) {
 
 }
 
-func (b *LifeCrystal) InflictDamage(damage int) {
-	b.life -= damage
-	if b.life < 0 {
-		b.life = 0
+func (d *LifeCrystal) GetBuilding() *world.Building {
+	return d.Building
+}
+
+func (b *LifeCrystal) InflictDamage(damage float64) {
+	b.Health -= damage
+	if b.Health < 0 {
+		b.Health = 0
 		// TODO
 	}
 }
 func (b *LifeCrystal) Alive() bool {
-	return b.life > 0
-}
-
-func (b *LifeCrystal) GetPixelCoordinates() (int, int) {
-	return b.pixelX, b.pixelY
+	return b.Health >= 1
 }
 
 func (b *LifeCrystal) Draw(image *ebiten.Image) {
 	image.DrawImage(b.anim[b.animCnt], b.drawOpt)
+	b.DrawGui(image)
 }
 
 func NewLifeCrystal(x, y int, g *world.Grid) *LifeCrystal {
 	l := LifeCrystal{
-		pixelY:           y * 64,
-		pixelX:           x * 64,
-		x:                x,
-		y:                y,
+		Building: &world.Building{
+			PixelX:    float64(x * 64),
+			PixelY:    float64(y * 64),
+			GridX:     x,
+			GridY:     y,
+			Repairing: false,
+			Health:    1000,
+			MaxHealth: 1000,
+		},
 		anim:             assets.Get[[]*ebiten.Image](assets.AssetsPlayerCrystalAnim),
 		animCntDirection: 1,
-		life:             1000,
 	}
 
 	l.drawOpt = &ebiten.DrawImageOptions{}
-	l.drawOpt.GeoM.Translate(float64(l.pixelX), float64(l.pixelY))
+	l.drawOpt.GeoM.Translate(l.PixelX, l.PixelY)
 	g.AddMagnetism(x, y)
 	g.SetGrid(x, y, world.GridLevelPlatform, platforms.NewPlatformAt(x, y, g))
 

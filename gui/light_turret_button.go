@@ -10,11 +10,14 @@ import (
 
 func NewLightTurretButton() *Button {
 	return &Button{
-		image: assets.Get[*ebiten.Image](assets.AssetsGuiLightTurret),
-		cost:  LightTurretCost,
+		image:       assets.Get[*ebiten.Image](assets.AssetsGuiLightTurret),
+		cost:        LightTurretCost,
+		description: "Light turret, cheap but weak",
 		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
 			if IsBuildable(g) {
-				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, turrets.NewLightTurret(g.SelectedGridX, g.SelectedGridY, g))
+				e := turrets.NewLightTurret(g.SelectedGridX, g.SelectedGridY, g)
+				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, e)
+				gui.SetBuildingSelectedContext(p, e)
 				return true
 			}
 			return false

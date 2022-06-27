@@ -8,30 +8,25 @@ import (
 )
 
 type BasicMagnet struct {
-	magnetBase           *ebiten.Image
-	Magnet               *ebiten.Image
-	x, y, pixelX, pixelY int
-	MagnetBaseOpt        *ebiten.DrawImageOptions
-	magnetOpt            *ebiten.DrawImageOptions
-	rotation             float64
-	deleted              bool
-	setForDeletion       bool
-	life                 int
+	*world.Building
+	magnetBase     *ebiten.Image
+	Magnet         *ebiten.Image
+	MagnetBaseOpt  *ebiten.DrawImageOptions
+	magnetOpt      *ebiten.DrawImageOptions
+	rotation       float64
+	deleted        bool
+	setForDeletion bool
 }
 
-func (b *BasicMagnet) InflictDamage(damage int) {
-	b.life -= damage
-	if b.life < 0 {
-		b.life = 0
+func (b *BasicMagnet) InflictDamage(damage float64) {
+	b.Health -= damage
+	if !b.Alive() {
+		b.Health = 0
 		b.setForDeletion = true
 	}
 }
 func (b *BasicMagnet) Alive() bool {
-	return b.life > 0
-}
-
-func (b *BasicMagnet) GetPixelCoordinates() (int, int) {
-	return b.pixelX, b.pixelY
+	return b.Health >= 1
 }
 
 func (b *BasicMagnet) SetForDeletion(g *world.Grid) {
@@ -40,16 +35,16 @@ func (b *BasicMagnet) SetForDeletion(g *world.Grid) {
 
 func (b *BasicMagnet) Update(g *world.Grid) {
 	if !b.deleted && b.setForDeletion {
-		g.SetGrid(b.x, b.y, world.GridLevelStructures, nil)
+		g.SetGrid(b.GridX, b.GridY, world.GridLevelStructures, nil)
 		for _, s := range assets.Surroundings5 {
-			cX, cY := b.x+s.X, b.y+s.Y
+			cX, cY := b.GridX+s.X, b.GridY+s.Y
 
 			if g.OutOfBounds(cX, cY) {
 				continue
 			}
 			g.RemoveMagnetism(cX, cY)
 		}
-		g.RemoveMagnetism(b.x, b.y)
+		g.RemoveMagnetism(b.GridX, b.GridY)
 		b.deleted = true
 	}
 }
@@ -62,19 +57,32 @@ func (b *BasicMagnet) Draw(image *ebiten.Image) {
 	b.magnetOpt.GeoM.Rotate(b.rotation)
 	b.magnetOpt.GeoM.Translate(64/2, 64/2)
 	// Place at correct position
-	b.magnetOpt.GeoM.Translate(float64(b.pixelX), float64(b.pixelY))
+	b.magnetOpt.GeoM.Translate(b.PixelX, b.PixelY)
 	image.DrawImage(b.Magnet, b.magnetOpt)
 	b.rotation += 0.05
+	b.DrawGui(image)
 }
 
+func (d *BasicMagnet) GetBuilding() *world.Building {
+	return d.Building
+}
 func NewBasicMagnet(x, y int, g *world.Grid) *BasicMagnet {
-	b := BasicMagnet{x: x, y: y, pixelY: y * 64, pixelX: x * 64,
+	b := BasicMagnet{
+		Building: &world.Building{
+			PixelX:    float64(x * 64),
+			PixelY:    float64(y * 64),
+			GridX:     x,
+			GridY:     y,
+			Repairing: false,
+			Health:    50,
+			MaxHealth: 50,
+		},
 		magnetBase: assets.Get[*ebiten.Image](assets.AssetsMagnetBase),
 		Magnet:     assets.Get[*ebiten.Image](assets.AssetsMagnet),
 	}
 	b.MagnetBaseOpt = &ebiten.DrawImageOptions{}
 	b.magnetOpt = &ebiten.DrawImageOptions{}
-	b.MagnetBaseOpt.GeoM.Translate(float64(b.pixelX), float64(b.pixelY))
+	b.MagnetBaseOpt.GeoM.Translate(b.PixelX, b.PixelY)
 	g.AddMagnetism(x, y)
 
 	for _, s := range assets.Surroundings5 {

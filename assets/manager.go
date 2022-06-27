@@ -29,26 +29,42 @@ const (
 	AssetsTurretGun_heavy_2      = "AssetsTurretGun_heavy_2"
 	AssetsTurretGun_heavy_3      = "AssetsTurretGun_heavy_3"
 	AssetsTurretGun_heavy_4      = "AssetsTurretGun_heavy_4"
+	AssetsTurretGun_beam_1       = "AssetsTurretGun_beam_1"
+	AssetsTurretGun_beam_2       = "AssetsTurretGun_beam_2"
+	AssetsTurretGun_beam_3       = "AssetsTurretGun_beam_3"
+	AssetsTurretGun_beam_4       = "AssetsTurretGun_beam_4"
+	AssetsTurretGun_rocket_1     = "AssetsTurretGun_rocket_1"
+	AssetsTurretGun_rocket_2     = "AssetsTurretGun_rocket_2"
+	AssetsTurretGun_rocket_3     = "AssetsTurretGun_rocket_3"
+	AssetsTurretGun_rocket_4     = "AssetsTurretGun_rocket_4"
 	AssetsTurretBase_1           = "AssetsTurretBase_1"
 	AssetsTurretBase_2           = "AssetsTurretBase_2"
 	AssetsTurretBase_3           = "AssetsTurretBase_3"
 	AssetsTurretBase_4           = "AssetsTurretBase_4"
 	AssetsMagnet                 = "AssetsMagnet"
 	AssetsMagnetBase             = "AssetsMagnetBase"
-	AssetsEnemy                  = "AssetsEnemy"
 
 	AssetsGuiEmpty  = "AssetsGuiEmpty"
 	AssetsGuiCancel = "AssetsGuiCancel"
-	AssetsGuiSell   = "AssetsGuiSell"
 
-	AssetsGuiLightTurret        = "AssetsGuiLightTurret"
-	AssetsGuiLightTurretUpgrade = "AssetsGuiLightTurretUpgrade"
-	AssetsGuiHeavyTurret        = "AssetsGuiHeavyTurret"
-	AssetsGuiHeavyTurretUpgrade = "AssetsGuiHeavyTurretUpgrade"
-	AssetsGuiBaseUpgrade        = "AssetsGuiBaseUpgrade"
-	AssetsGuiMagnet             = "AssetsGuiMagnet"
+	AssetsGuiSell         = "AssetsGuiSell"
+	AssetsGuiRepair       = "AssetsGuiRepair"
+	AssetsGuiRepairWrench = "AssetsGuiRepairWrench"
+
+	AssetsGuiLightTurret         = "AssetsGuiLightTurret"
+	AssetsGuiLightTurretUpgrade  = "AssetsGuiLightTurretUpgrade"
+	AssetsGuiHeavyTurret         = "AssetsGuiHeavyTurret"
+	AssetsGuiHeavyTurretUpgrade  = "AssetsGuiHeavyTurretUpgrade"
+	AssetsGuiBeamTurret          = "AssetsGuiBeamTurret"
+	AssetsGuiBeamTurretUpgrade   = "AssetsGuiBeamTurretUpgrade"
+	AssetsGuiRocketTurret        = "AssetsGuiRocketTurret"
+	AssetsGuiRocketTurretUpgrade = "AssetsGuiRocketTurretUpgrade"
+	AssetsGuiBaseUpgrade         = "AssetsGuiBaseUpgrade"
+	AssetsGuiMagnet              = "AssetsGuiMagnet"
 
 	AssetsGuiSelectAnim = "AssetsGuiSelectAnim"
+	AssetsBuildAnim     = "AssetsBuildAnim"
+	AssetsUpgradeAnim   = "AssetsUpgradeAnim"
 
 	AssetsGuiTopPart            = "AssetsGuiTopPart"
 	AssetsGuiBottomBorder       = "AssetsGuiBottomBorder"
@@ -58,6 +74,17 @@ const (
 	AssetsGuiWarningLevelHigh   = "AssetsGuiWarningLevelHigh"
 
 	AssetsPlayerCrystalAnim = "AssetsPlayerCrystal"
+
+	AssetsEnemy              = "AssetsEnemy"
+	AssetsEnemyScoutLight    = "AssetsEnemyScoutLight"
+	AssetsEnemyScoutHeavy    = "AssetsEnemyScoutHeavy"
+	AssetsEnemyScoutShielded = "AssetsEnemyScoutShielded"
+	AssetsEnemyScoutElite    = "AssetsEnemyScoutElite"
+
+	AssetsEnemyMediumLight    = "AssetsEnemyMediumLight"
+	AssetsEnemyMediumHeavy    = "AssetsEnemyMediumHeavy"
+	AssetsEnemyMediumShielded = "AssetsEnemyMediumShielded"
+	AssetsEnemyMediumElite    = "AssetsEnemyMediumElite"
 )
 
 var manager *tentsuyu.AssetsManager
@@ -90,6 +117,16 @@ func GetManager() *tentsuyu.AssetsManager {
 		manager.AssetMap[AssetsTurretGun_heavy_2] = spriteset.SubImage(image.Rect(1*64, 2*64, 64+1*64, 2*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_heavy_3] = spriteset.SubImage(image.Rect(2*64, 2*64, 64+2*64, 2*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_heavy_4] = spriteset.SubImage(image.Rect(3*64, 2*64, 64+3*64, 2*64+64)).(*ebiten.Image)
+
+		manager.AssetMap[AssetsTurretGun_beam_1] = spriteset.SubImage(image.Rect(5*64, 1*64, 64+5*64, 1*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_beam_2] = spriteset.SubImage(image.Rect(6*64, 1*64, 64+6*64, 1*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_beam_3] = spriteset.SubImage(image.Rect(7*64, 1*64, 64+7*64, 1*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_beam_4] = spriteset.SubImage(image.Rect(8*64, 1*64, 64+8*64, 1*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_rocket_1] = spriteset.SubImage(image.Rect(5*64, 2*64, 64+5*64, 2*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_rocket_2] = spriteset.SubImage(image.Rect(6*64, 2*64, 64+6*64, 2*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_rocket_3] = spriteset.SubImage(image.Rect(7*64, 2*64, 64+7*64, 2*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_rocket_4] = spriteset.SubImage(image.Rect(8*64, 2*64, 64+8*64, 2*64+64)).(*ebiten.Image)
+
 		manager.AssetMap[AssetsTurretBase_1] = spriteset.SubImage(image.Rect(0*64, 0*64, 64+0*64, 0*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretBase_2] = spriteset.SubImage(image.Rect(1*64, 0*64, 64+1*64, 0*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretBase_3] = spriteset.SubImage(image.Rect(2*64, 0*64, 64+2*64, 0*64+64)).(*ebiten.Image)
@@ -111,6 +148,25 @@ func GetManager() *tentsuyu.AssetsManager {
 			manager.AssetMap[AssetsPlayerCrystalAnim] = mm
 		}
 
+		manager.AssetMap[AssetsBuildAnim] = make([]*ebiten.Image, 0)
+		for i := 0; i < 10; i++ {
+			img := spriteset.SubImage(image.Rect(i*64, 12*64, 64+i*64, 12*64+64)).(*ebiten.Image)
+			mm := manager.AssetMap[AssetsBuildAnim].([]*ebiten.Image)
+			mm = append(mm, img)
+			manager.AssetMap[AssetsBuildAnim] = mm
+		}
+		manager.AssetMap[AssetsUpgradeAnim] = make([]*ebiten.Image, 0)
+		for i := 0; i < 12; i++ {
+			img := spriteset.SubImage(image.Rect(i*64, 13*64, 64+i*64, 13*64+64)).(*ebiten.Image)
+			mm := manager.AssetMap[AssetsUpgradeAnim].([]*ebiten.Image)
+			mm = append(mm, img)
+			manager.AssetMap[AssetsUpgradeAnim] = mm
+		}
+
+		manager.AssetMap[AssetsGuiSell] = spriteset.SubImage(image.Rect(6*64, 6*64, 64+6*64, 6*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiRepair] = spriteset.SubImage(image.Rect(7*64, 6*64, 64+7*64, 6*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiRepairWrench] = spriteset.SubImage(image.Rect(4*64, 5*64, 64+4*64, 5*64+64)).(*ebiten.Image)
+
 		manager.AssetMap[AssetsGuiTopPart] = spriteset.SubImage(image.Rect(10*64, 6*64, 64+11*64, 7*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiBottomBorder] = spriteset.SubImage(image.Rect(10*64, 11*64, 64+11*64, 11*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiMiddle] = spriteset.SubImage(image.Rect(10*64, 8*64, 64+11*64, 8*64+64)).(*ebiten.Image)
@@ -125,10 +181,19 @@ func GetManager() *tentsuyu.AssetsManager {
 
 		manager.AssetMap[AssetsGuiLightTurret] = spriteset.SubImage(image.Rect(0*64, 7*64, 59+0*64, 7*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiHeavyTurret] = spriteset.SubImage(image.Rect(1*64, 7*64, 59+1*64, 7*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiBeamTurret] = spriteset.SubImage(image.Rect(2*64, 7*64, 59+2*64, 7*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiRocketTurret] = spriteset.SubImage(image.Rect(3*64, 7*64, 59+3*64, 7*64+64)).(*ebiten.Image)
 
 		manager.AssetMap[AssetsGuiMagnet] = spriteset.SubImage(image.Rect(0*64, 8*64, 59+0*64, 8*64+64)).(*ebiten.Image)
 
-		manager.AssetMap[AssetsEnemy] = spriteset.SubImage(image.Rect(0*64, 3*64, 64+0*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyScoutLight] = spriteset.SubImage(image.Rect(0*64, 3*64, 64+0*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyScoutHeavy] = spriteset.SubImage(image.Rect(1*64, 3*64, 64+1*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyScoutShielded] = spriteset.SubImage(image.Rect(2*64, 3*64, 64+2*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyScoutElite] = spriteset.SubImage(image.Rect(3*64, 3*64, 64+3*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyMediumLight] = spriteset.SubImage(image.Rect(4*64, 3*64, 64+4*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyMediumHeavy] = spriteset.SubImage(image.Rect(5*64, 3*64, 64+5*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyMediumShielded] = spriteset.SubImage(image.Rect(6*64, 3*64, 64+6*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyMediumElite] = spriteset.SubImage(image.Rect(7*64, 3*64, 64+7*64, 3*64+64)).(*ebiten.Image)
 
 		deferList = append(deferList, func() {
 

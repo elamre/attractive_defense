@@ -10,11 +10,15 @@ import (
 
 func NewMagnetButton() *Button {
 	return &Button{
-		image: assets.Get[*ebiten.Image](assets.AssetsGuiMagnet),
-		cost:  MagnetCost,
+		image:       assets.Get[*ebiten.Image](assets.AssetsGuiMagnet),
+		cost:        MagnetCost,
+		description: "Use this to expand your base",
 		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
 			if IsBuildable(g) {
+				p.Risk++
+				gui.NoticeLevel = p.Risk
 				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, buildings.NewBasicMagnet(g.SelectedGridX, g.SelectedGridY, g))
+				gui.NoButtonsContext()
 				return true
 			}
 			return false

@@ -1,12 +1,14 @@
 package gui
 
 import (
+	"fmt"
 	"github.com/elamre/attractive_defense/assets"
 	"github.com/elamre/attractive_defense/buildings/turrets"
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/platforms"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -27,6 +29,11 @@ type SideGui struct {
 	available map[string]bool
 
 	showingBuildings bool
+
+	sellButton       *SellButton
+	repairButton     *RepairButton
+	buildingSelected bool
+	description      string
 }
 
 func NewSideGui(pixelX, pixelY int) *SideGui {
@@ -40,9 +47,11 @@ func NewSideGui(pixelX, pixelY int) *SideGui {
 		noticeLevelImgMed:  assets.Get[*ebiten.Image](assets.AssetsGuiWarningLevelMedium),
 		noticeLevelImgHigh: assets.Get[*ebiten.Image](assets.AssetsGuiWarningLevelHigh),
 		Rows:               8,
-		NoticeLevel:        24,
+		NoticeLevel:        1,
 		available:          InitButtons(),
 		showingBuildings:   true,
+		sellButton:         NewSellButton(),
+		repairButton:       NewRepairButton(),
 	}
 	s.buttonArray = GetBuildingButtons(s.available)
 	return s
@@ -57,37 +66,77 @@ func (s *SideGui) InGui(x, y int) bool {
 	return false
 }
 
+func (s *SideGui) NoButtonsContext() {
+	s.buttonArray = []*Button{}
+}
+
 func (s *SideGui) SetBuildingContext() {
 	s.buttonArray = GetBuildingButtons(s.available)
 }
 
 func (s *SideGui) SetBuildingSelectedContext(p *game.Player, e world.GridEntity) {
 	if t, ok := e.(*turrets.Turret); ok {
-		s.buttonArray = []*Button{NewUpgradableButton(t.Gun), NewUpgradableButton(t.Base)}
+		s.buttonArray = []*Button{NewUpgradableButton(t.Gun, e), NewUpgradableButton(t.Base, e)}
 	}
 }
 
 func (s *SideGui) Update(p *game.Player, g *world.Grid, camera *Camera) {
-	s.tempCounter++
-	s.NoticeLevel = (s.tempCounter / 10) % 25
+	//s.tempCounter++
+	//s.NoticeLevel = (s.tempCounter / 10) % 25
+	selectedEntity := g.GetGridEntity(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures)
+	s.buildingSelected = selectedEntity != nil
+	s.description = ""
+
+	mx, my := ebiten.CursorPosition()
+	if s.InGui(mx, my) {
+		xPos := 0
+		if mx > s.drawX+64 {
+			xPos = 1
+		}
+		if my < 64+19 {
+			if s.buildingSelected {
+				if xPos == 0 {
+					s.description = "Sell selected building"
+				} else {
+					s.description = "Repair selected building"
+				}
+			}
+		} else {
+			yIndex := (my - 19 - 64) / 64
+			index := (yIndex * 2) + xPos
+			if index < len(s.buttonArray) {
+				if int(s.buttonArray[index].cost) > 0 {
+					s.description = fmt.Sprintf("%s, cost: %d", s.buttonArray[index].description, int(s.buttonArray[index].cost))
+				}
+			}
+		}
+	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
 
 		if s.InGui(mx, my) {
 			xPos := 0
 			if mx > s.drawX+64 {
 				xPos = 1
 			}
+			if my < 64+19 {
+				if s.buildingSelected {
+					if xPos == 0 {
+						s.sellButton.Selected(p, s, g)
+					} else {
+						s.repairButton.Selected(p, s, g)
+					}
+				}
+				return
+			}
 			yIndex := (my - 19 - 64) / 64
 			index := (yIndex * 2) + xPos
 			if index < len(s.buttonArray) {
-				s.buttonArray[index].selected(p, s, g)
-			}
-			if e := g.GetGridEntity(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures); e != nil {
-				s.SetBuildingSelectedContext(p, e)
+				s.buttonArray[index].Selected(p, s, g)
 			}
 		} else {
+			s.NoButtonsContext()
+			s.showingBuildings = false
 			cMx, cMy := camera.ScreenToWorld(mx, my)
 			x, y := g.MouseToGridPos(int(cMx), int(cMy))
 			g.SetSelectedPos(x, y)
@@ -107,6 +156,7 @@ func (s *SideGui) Update(p *game.Player, g *world.Grid, camera *Camera) {
 			}
 		}
 	} else if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		s.NoButtonsContext()
 		g.SetSelectedPos(-1, -1)
 	}
 	//s.showingBuildings = IsBuildable(g)
@@ -122,7 +172,7 @@ func (s *SideGui) Draw(screen *ebiten.Image) {
 		screen.DrawImage(s.mid, &noticeOpts)
 		noticeOpts.GeoM.Translate(0, 64)
 	}
-	screen.DrawImage(s.bot, &noticeOpts)
+
 	noticeOpts.GeoM.Reset()
 	noticeOpts.GeoM.Translate(float64(s.drawX)+4, float64(s.drawY))
 	for i := 0; i < s.NoticeLevel; i++ {
@@ -137,9 +187,9 @@ func (s *SideGui) Draw(screen *ebiten.Image) {
 	}
 	noticeOpts.GeoM.Reset()
 	noticeOpts.GeoM.Translate(float64(s.drawX)+5, float64(s.drawY)+19+64)
-	if !s.showingBuildings {
-		//noticeOpts.ColorM.Translate(-0.5, -0.5, -0.5, 0)
-	}
+	//if s.showingBuildings {
+	//noticeOpts.ColorM.Translate(-0.5, -0.5, -0.5, 0)
+
 	if s.buttonArray != nil {
 		for i, ss := range s.buttonArray {
 			ss.Draw(screen, &noticeOpts)
@@ -150,8 +200,14 @@ func (s *SideGui) Draw(screen *ebiten.Image) {
 			}
 		}
 	}
-}
-
-func (s *SideGui) SetNoticeLevel(level int) {
-
+	//}
+	noticeOpts.GeoM.Reset()
+	noticeOpts.GeoM.Translate(float64(s.drawX)+1, float64(s.drawY)+20)
+	if s.buildingSelected {
+		screen.DrawImage(s.bot, &noticeOpts)
+		s.sellButton.Draw(screen, &noticeOpts)
+		noticeOpts.GeoM.Translate(62, 0)
+		s.repairButton.Draw(screen, &noticeOpts)
+	}
+	ebitenutil.DebugPrintAt(screen, s.description, 12, 600-12-12)
 }

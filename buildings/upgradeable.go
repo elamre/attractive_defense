@@ -6,4 +6,5 @@ type UpgradeAble interface {
 	GetUpgradeButton() *ebiten.Image
 	UpgradeCost() int
 	Upgrade()
+	Description() string
 }

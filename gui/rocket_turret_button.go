@@ -8,14 +8,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewHeavyTurretButton() *Button {
+func NewRocketTurretButton() *Button {
 	return &Button{
-		image:       assets.Get[*ebiten.Image](assets.AssetsGuiHeavyTurret),
-		cost:        HeavyTurretCost,
-		description: "Heavy turret. Shoots slow but powerful",
+		image:       assets.Get[*ebiten.Image](assets.AssetsGuiRocketTurret),
+		cost:        RocketTurretCost,
+		description: "Large range dealing massive damage with homing missiles",
 		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
 			if IsBuildable(g) {
-				e := turrets.NewHeavyTurret(g.SelectedGridX, g.SelectedGridY, g)
+				e := turrets.NewRocketTurret(g.SelectedGridX, g.SelectedGridY, g)
 				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, e)
 				gui.SetBuildingSelectedContext(p, e)
 				return true

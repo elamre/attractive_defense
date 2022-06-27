@@ -9,19 +9,24 @@ import (
 const MagnetCost = 1000
 const LightTurretCost = 500
 const HeavyTurretCost = 2500
+const BeamTurretCost = 5000
+const RocketTurretCost = 10000
 
 type Button struct {
-	cost     int
-	selected func(p *game.Player, gui *SideGui, g *world.Grid) bool
-	image    *ebiten.Image
+	cost        float64
+	selected    func(p *game.Player, gui *SideGui, g *world.Grid) bool
+	image       *ebiten.Image
+	description string
 }
 
 func (b *Button) Draw(screen *ebiten.Image, location *ebiten.DrawImageOptions) {
-	screen.DrawImage(b.image, location)
+	if b.cost > 0 {
+		screen.DrawImage(b.image, location)
+	}
 }
 
 func (b *Button) Selected(p *game.Player, gui *SideGui, g *world.Grid) {
-	if p.Money >= b.cost {
+	if p.Money >= b.cost && b.cost > 0 {
 		if b.selected(p, gui, g) {
 			p.Money -= b.cost
 		}

@@ -89,9 +89,9 @@ func (c *Camera) Update() {
 			c.ZoomFactor += 1
 		}
 	}
-	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+	/*	if ebiten.IsKeyPressed(ebiten.KeySpace) {
 		c.Reset()
-	}
+	}*/
 
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
 		if c.ZoomFactor > -2400 {

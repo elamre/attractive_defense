@@ -6,52 +6,52 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type heavyTurretGun struct {
+type beamTurretGun struct {
 	image         *ebiten.Image
 	upgradeButton *ebiten.Image
 	level         int
 	bulletEffects world.ProjectileEffect
 }
 
-func (l *heavyTurretGun) Fire(x, y, tX, tY float64, manager *world.ProjectoryManager) {
+func (l *beamTurretGun) Fire(x, y, tX, tY float64, manager *world.ProjectoryManager) {
 	p := world.NewSmallProjectile(x, y, tX, tY, &l.bulletEffects, 250)
 	manager.AddPlayerProjectile(p)
 }
 
-func (l *heavyTurretGun) ReloadTime() int {
+func (l *beamTurretGun) ReloadTime() int {
 	if l.level >= 3 {
 		return 15
 	}
 	return 30
 }
 
-func (l *heavyTurretGun) GetUpgradeButton() *ebiten.Image {
+func (l *beamTurretGun) GetUpgradeButton() *ebiten.Image {
 	return l.upgradeButton
 }
 
-func (l *heavyTurretGun) UpgradeCost() int {
+func (l *beamTurretGun) UpgradeCost() int {
 	if l.level == 4 {
 		return -1
 	}
 	return 200 * l.level
 }
 
-func (l *heavyTurretGun) Upgrade() {
+func (l *beamTurretGun) Upgrade() {
 	switch l.level {
 	case 1:
 		l.bulletEffects.Damage *= 1.5
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_2)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_beam_2)
 	case 2:
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_3)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_beam_3)
 	case 3:
 		l.bulletEffects.Speed *= 2
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_4)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_beam_4)
 	default:
 		panic("Should never get here")
 	}
 	l.level++
 }
-func (d *heavyTurretGun) Description() string {
+func (d *beamTurretGun) Description() string {
 	switch d.level {
 	case 1:
 		return "More damage"
@@ -63,23 +63,23 @@ func (d *heavyTurretGun) Description() string {
 		return ""
 	}
 }
-func (l *heavyTurretGun) Update(target world.Targetable) {
+func (l *beamTurretGun) Update(target world.Targetable) {
 
 }
-func (l *heavyTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
+func (l *beamTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
 	screen.DrawImage(l.image, dst)
 }
 
-func newHeavyTurretGun() *heavyTurretGun {
-	return &heavyTurretGun{
-		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_1),
+func newbeamTurretGun() *beamTurretGun {
+	return &beamTurretGun{
+		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_beam_1),
 		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiHeavyTurretUpgrade),
 		level:         1,
 		bulletEffects: world.ProjectileEffect{Damage: 40, Speed: 3},
 	}
 }
 
-func NewHeavyTurret(x, y int, g *world.Grid) *Turret {
+func NewBeamTurretGun(x, y int, g *world.Grid) *Turret {
 	b := newDefaultBase()
-	return NewTurret(x, y, newHeavyTurretGun(), b, g)
+	return NewTurret(x, y, newbeamTurretGun(), b, g)
 }

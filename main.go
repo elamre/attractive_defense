@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/attractive_defense/buildings"
 	"github.com/elamre/attractive_defense/buildings/turrets"
 	"github.com/elamre/attractive_defense/enemies"
 	"github.com/elamre/attractive_defense/game"
@@ -33,13 +34,21 @@ func NewAttractiveDefense(width, height int) *AD {
 	projectory := world.NewProjectoryManager()
 	enemyManager := enemies.NewEnemyManager()
 	player := game.NewPlayer()
+	grid.ProjectoryMng = projectory
 	sideGui := gui.NewSideGui(800-128, 0)
 	camera := gui.Camera{ViewPort: f64.Vec2{800, 600}}
+
+	grid.SetGrid(5, 5, world.GridLevelStructures, buildings.NewLifeCrystal(5, 5, &grid))
 
 	grid.GridChangeCallback = func(x, y, z int, entity world.GridEntity) {
 		if z == world.GridLevelStructures {
 			if entity != nil {
 				if turret, ok := entity.(*turrets.Turret); ok {
+					turret.EnemyKilledCb = func() {
+						for i := range enemyManager.Entities {
+							turret.CheckAndSetTarget(*enemyManager.Entities[i])
+						}
+					}
 					for i := range enemyManager.Entities {
 						turret.CheckAndSetTarget(*enemyManager.Entities[i])
 					}

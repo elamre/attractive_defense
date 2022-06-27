@@ -5,15 +5,19 @@ var (
 	buyTurretButton *Button
 	sellButton      *Button
 
-	buyMagnet      *Button
-	buyLightTurret *Button
-	buyHeavyTurret *Button
+	buyMagnet       *Button
+	buyLightTurret  *Button
+	buyHeavyTurret  *Button
+	buyBeamTurret   *Button
+	buyRocketTurret *Button
 )
 
 var (
-	LightTurretButton = "LightTurretButton"
-	HeavyTurretButton = "HeavyTurretButton"
-	MagnetButton      = "MagnetButton"
+	LightTurretButton  = "LightTurretButton"
+	HeavyTurretButton  = "HeavyTurretButton"
+	RocketTurretButton = "RocketTurretButton"
+	BeamTurretButton   = "BeamTurretButton"
+	MagnetButton       = "MagnetButton"
 )
 
 func InitButtons() map[string]bool {
@@ -21,10 +25,14 @@ func InitButtons() map[string]bool {
 	unlocked[MagnetButton] = true
 	unlocked[LightTurretButton] = true
 	unlocked[HeavyTurretButton] = true
+	unlocked[RocketTurretButton] = true
+	unlocked[BeamTurretButton] = true
 
 	buyMagnet = NewMagnetButton()
 	buyLightTurret = NewLightTurretButton()
 	buyHeavyTurret = NewHeavyTurretButton()
+	buyBeamTurret = NewBeamTurretButton()
+	buyRocketTurret = NewRocketTurretButton()
 
 	return unlocked
 }
@@ -42,6 +50,13 @@ func GetBuildingButtons(unlockedMap map[string]bool) []*Button {
 	} else {
 		//maybe show that it exist but can't be pressed?
 	}
+	if unlockedMap[BeamTurretButton] {
+		retButtons = append(retButtons, buyBeamTurret)
+	}
+	if unlockedMap[RocketTurretButton] {
+		retButtons = append(retButtons, buyRocketTurret)
+	}
+
 	return retButtons
 }
 

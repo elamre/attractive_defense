@@ -82,9 +82,11 @@ func NewEnemyManager() *EnemyManager {
 
 func (e *EnemyManager) assignTarget(enemy EnemyInterface, g *world.Grid) {
 	x, y := enemy.GetPixelPosition()
-	target := g.ClosestBuilding(x/64, y/64).(world.BuildingInterface)
-
-	enemy.SetTarget(target.(world.Targetable))
+	closest := g.ClosestBuilding(x/64, y/64)
+	if closest == nil {
+		return
+	}
+	enemy.SetTarget(closest.(world.Targetable))
 }
 
 func (e *EnemyManager) AddEnemy(enemy EnemyInterface, g *world.Grid) {

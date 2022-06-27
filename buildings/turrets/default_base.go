@@ -8,17 +8,36 @@ import (
 type defaultBase struct {
 	image         *ebiten.Image
 	upgradeButton *ebiten.Image
-	health        int
+	maxHealth     float64
 	level         int
+	armor         float64
 }
 
 func newDefaultBase() *defaultBase {
 	return &defaultBase{
-		health:        50,
+		maxHealth:     50,
 		image:         assets.Get[*ebiten.Image](assets.AssetsTurretBase_1),
 		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiBaseUpgrade),
 		level:         1,
+		armor:         1,
 	}
+}
+
+func (d *defaultBase) Description() string {
+	switch d.level {
+	case 1:
+		return "Extra health"
+	case 2:
+		return "Adding armor"
+	case 3:
+		return "Very slow auto heal"
+	default:
+		return ""
+	}
+}
+
+func (d *defaultBase) GetMaxHealth() float64 {
+	return d.maxHealth
 }
 
 func (d *defaultBase) GetUpgradeButton() *ebiten.Image {
@@ -35,10 +54,12 @@ func (d *defaultBase) UpgradeCost() int {
 func (d *defaultBase) Upgrade() {
 	switch d.level {
 	case 1:
+		d.maxHealth = 100
 		d.image = assets.Get[*ebiten.Image](assets.AssetsTurretBase_2)
 	case 2:
 		d.image = assets.Get[*ebiten.Image](assets.AssetsTurretBase_3)
 	case 3:
+		d.armor = 0.8
 		d.image = assets.Get[*ebiten.Image](assets.AssetsTurretBase_4)
 	default:
 		panic("Should never get here")
@@ -50,10 +71,6 @@ func (d *defaultBase) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
 	screen.DrawImage(d.image, dst)
 }
 
-func (d *defaultBase) GetHealth() int {
-	return d.health
-}
-
-func (d *defaultBase) TakeDamage(damage int) {
-	d.health -= damage
+func (d *defaultBase) TakeDamage(damage float64) float64 {
+	return damage / d.armor
 }

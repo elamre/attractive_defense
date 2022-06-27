@@ -1,10 +1,12 @@
 package world
 
 import (
+	"fmt"
 	"github.com/elamre/attractive_defense/assets"
-	"github.com/elamre/go_helpers/pkg/slice_helpers"
 	"github.com/elamre/tentsuyu/tentsuyutils"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"log"
 )
 
 const (
@@ -38,7 +40,7 @@ type Grid struct {
 	buildings                    *assets.EntityManager[*GridEntity]
 	Width, Height, levels        int
 	fields                       []GridEntity
-	triggerFields                [][]*TriggerAble
+	triggerFields                [][]TriggerAble
 	entityToField                map[GridEntity]GridPos
 	entityToEntityPtr            map[GridEntity]*GridEntity
 	magnetism                    []int
@@ -60,7 +62,7 @@ func NewGrid(width, height, levels int) Grid {
 		levels:              levels,
 		buildings:           assets.NewEntityManager[*GridEntity](),
 		fields:              make([]GridEntity, width*height*levels),
-		triggerFields:       make([][]*TriggerAble, width*height),
+		triggerFields:       make([][]TriggerAble, width*height),
 		entityToField:       make(map[GridEntity]GridPos),
 		entityToEntityPtr:   make(map[GridEntity]*GridEntity),
 		magnetism:           make([]int, width*height),
@@ -75,26 +77,37 @@ func NewGrid(width, height, levels int) Grid {
 func (g *Grid) AddTriggerFunc(x, y int, trigger TriggerAble) {
 	idx := (g.Width * y) + x
 	if g.triggerFields[idx] == nil {
-		g.triggerFields[idx] = make([]*TriggerAble, 0)
+		g.triggerFields[idx] = make([]TriggerAble, 0)
 	}
-	g.triggerFields[idx] = append(g.triggerFields[idx], &trigger)
+	g.triggerFields[idx] = append(g.triggerFields[idx], trigger)
 }
 
 func (g *Grid) RemoveTrigger(x, y int, trigger TriggerAble) {
 	idx := (g.Width * y) + x
-	g.triggerFields[idx] = slice_helpers.RemoveFromList[*TriggerAble](&trigger, g.triggerFields[idx])
+	if len(g.triggerFields[idx]) == 1 {
+		g.triggerFields[idx] = g.triggerFields[idx][:0]
+	} else {
+		for i := range g.triggerFields[idx] {
+			if g.triggerFields[idx][i] == trigger {
+				g.triggerFields[idx][i] = g.triggerFields[idx][len(g.triggerFields[idx])-1]
+				g.triggerFields[idx] = g.triggerFields[idx][:len(g.triggerFields[idx])-1]
+				return
+			}
+		}
+		log.Printf("Could not be found!!! %+v : %+v", g.triggerFields[idx], trigger)
+	}
 }
 
 func (g *Grid) TestTrigger(x, y int, ent interface{}) bool {
 	idx := (g.Width * y) + x
-	if idx >= len(g.triggerFields) {
+	if idx >= len(g.triggerFields) || idx < 0 {
 		return false
 	}
 	if ar := g.triggerFields[idx]; ar != nil {
 		for i := range ar {
 			g.triggered[idx]++
 
-			(*ar[i]).Trigger(x, y, ent)
+			ar[i].Trigger(x, y, ent)
 		}
 		return true
 	}
@@ -232,7 +245,7 @@ func (g *Grid) DrawGrid(screen *ebiten.Image) {
 	for y := 0; y < g.Height; y++ {
 		for x := 0; x < g.Width; x++ {
 			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", g.magnetism[y*g.Width+x]), x*64, y*64)
-			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", len(g.triggerFields[y*g.Width+x])), x*64, y*64+12)
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", len(g.triggerFields[y*g.Width+x])), x*64, y*64+12)
 			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", (g.triggered[y*g.Width+x])), x*64+24, y*64+12)
 		}
 	}

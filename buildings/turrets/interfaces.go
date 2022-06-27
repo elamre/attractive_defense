@@ -2,68 +2,92 @@ package turrets
 
 import (
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/attractive_defense/buildings"
 	"github.com/elamre/attractive_defense/enemies"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/elamre/tentsuyu/tentsuyutils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"golang.org/x/image/colornames"
 	"math"
 )
 
 type TurretBaseInterface interface {
 	UpgradeCost() int
 	Upgrade()
+	Description() string
 	GetUpgradeButton() *ebiten.Image
 	Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
-	TakeDamage(damage int)
-	GetHealth() int
+	TakeDamage(damage float64) float64
+	GetMaxHealth() float64
 }
 
 type TurretGunInterface interface {
 	UpgradeCost() int
 	Upgrade()
+	Description() string
 	GetUpgradeButton() *ebiten.Image
 	Update(target world.Targetable)
 	Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
+	ReloadTime() int
+	Fire(x, y, tX, tY float64, manager *world.ProjectoryManager)
 }
 
 type Turret struct {
+	*world.Building
 	Gun            TurretGunInterface
 	Base           TurretBaseInterface
 	EnemyTarget    enemies.EnemyInterface
 	opts           *ebiten.DrawImageOptions
 	gunOpts        *ebiten.DrawImageOptions
+	upgradeEffect  []*ebiten.Image
+	upgradeCounter float64
 	destroy        bool
-	x, y           int
-	pixelX, pixelY float64
 	shootTimer     int
+	EnemyKilledCb  func()
 }
 
-func (b *Turret) InflictDamage(damage int) {
-	b.Base.TakeDamage(damage)
+func (d *Turret) Upgraded(able buildings.UpgradeAble) {
+	if able == d.Base {
+		d.Building.MaxHealth = d.Base.GetMaxHealth()
+		d.Building.Health += d.Building.MaxHealth / 2
+		if d.Building.Health > d.Building.MaxHealth {
+			d.Building.Health = d.Building.MaxHealth
+		}
+	}
+	d.upgradeCounter = 0
+}
+
+func (d *Turret) GetBuilding() *world.Building {
+	return d.Building
+}
+
+func (b *Turret) InflictDamage(damage float64) {
+	dmg := b.Base.TakeDamage(damage)
+	b.Health -= dmg
 }
 
 func (b *Turret) Alive() bool {
-	return b.Base.GetHealth() > 0
-}
-
-func (t *Turret) GetPixelCoordinates() (x, y int) {
-	return t.x * 64, t.y * 64
+	return b.Health >= 1
 }
 
 func (t *Turret) CheckAndSetTarget(enemyInterface enemies.EnemyInterface) {
 	x, y := enemyInterface.GetPixelPosition()
-	distance := tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, float64(x), float64(y))
+	distance := tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, float64(x), float64(y))
 	if t.EnemyTarget != nil {
+		if !t.EnemyTarget.IsAlive() {
+			t.EnemyTarget = enemyInterface
+		}
 		curX, curY := enemyInterface.GetPixelPosition()
-		curDistance := tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, float64(curX), float64(curY))
+		curDistance := tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, float64(curX), float64(curY))
 		if distance < curDistance {
 			t.EnemyTarget = enemyInterface
 		}
-	} else if distance <= 200 {
+		return
+	}
+	if distance <= 200 {
 		t.EnemyTarget = enemyInterface
 	}
+
 }
 
 func (t *Turret) Trigger(x, y int, other interface{}) {
@@ -79,10 +103,16 @@ func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface,
 		Base:    base,
 		opts:    &opts,
 		gunOpts: &gunOpts,
-		x:       locX,
-		y:       locY,
-		pixelX:  float64(locX * 64),
-		pixelY:  float64(locY * 64),
+		Building: &world.Building{
+			PixelX:    float64(locX * 64),
+			PixelY:    float64(locY * 64),
+			GridX:     locX,
+			GridY:     locY,
+			Repairing: false,
+			Health:    base.GetMaxHealth(),
+			MaxHealth: base.GetMaxHealth(),
+		},
+		upgradeEffect: assets.Get[[]*ebiten.Image](assets.AssetsUpgradeAnim),
 	}
 
 	opts.GeoM.Translate(float64(locX*64), float64(locY*64))
@@ -99,10 +129,6 @@ func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface,
 	return t
 }
 
-func (t *Turret) Damage(damage int) {
-
-}
-
 func (t *Turret) Update(g *world.Grid) {
 	if !t.Alive() {
 		t.destroy = true
@@ -110,7 +136,7 @@ func (t *Turret) Update(g *world.Grid) {
 	if t.destroy {
 		t.EnemyTarget = nil
 		for _, s := range assets.Surroundings3x3 {
-			cX, cY := t.x+s.X, t.y+s.Y
+			cX, cY := t.GridX+s.X, t.GridY+s.Y
 
 			if g.OutOfBounds(cX, cY) {
 				continue
@@ -118,35 +144,41 @@ func (t *Turret) Update(g *world.Grid) {
 			g.RemoveTrigger(cX, cY, t)
 
 		}
-		g.SetGrid(t.x, t.y, world.GridLevelStructures, nil)
+		g.SetGrid(t.GridX, t.GridY, world.GridLevelStructures, nil)
 	}
 
 	if t.EnemyTarget != nil {
 		if !t.EnemyTarget.IsAlive() {
 			t.EnemyTarget = nil
+			if t.EnemyKilledCb != nil {
+				t.EnemyKilledCb()
+			}
 		} else {
 			t.gunOpts.GeoM.Reset()
 			enemyX, enemyY := t.EnemyTarget.GetPixelPosition()
 			eX, eY := float64(enemyX)+32, float64(enemyY)+32
-			mouseXFloat := eX - (t.pixelX + 32)
-			mouseYFloat := eY - (t.pixelY + 32)
+			mouseXFloat := eX - (t.PixelX + 32)
+			mouseYFloat := eY - (t.PixelY + 32)
 
 			angle := math.Atan2(mouseYFloat, mouseXFloat)
 
 			t.gunOpts.GeoM.Translate(-64/2, -64/2)
 			t.gunOpts.GeoM.Rotate(angle)
 			t.gunOpts.GeoM.Translate(64/2, 64/2)
-			t.gunOpts.GeoM.Translate(t.pixelX, t.pixelY)
-			if tentsuyutils.Distance(t.pixelX+32, t.pixelY+32, eX, eY) < 200 {
-				if t.shootTimer == 10 {
+			t.gunOpts.GeoM.Translate(t.PixelX, t.PixelY)
+			if tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, eX, eY) < 200 {
+				if t.shootTimer >= t.Gun.ReloadTime() {
 					t.shootTimer = 0
-					g.ProjectoryMng.AddPlayerProjectile(world.NewBasicProjectile(t.pixelX+32, t.pixelY+32, eX, eY))
+					t.Gun.Fire(t.PixelX+32, t.PixelY+32, eX, eY, g.ProjectoryMng)
 				}
 			}
 		}
-	}
-	if t.shootTimer < 10 {
 		t.shootTimer++
+	}
+	if int(t.upgradeCounter) < len(t.upgradeEffect) {
+		t.upgradeCounter += 0.5
+	} else {
+		t.upgradeCounter = 999
 	}
 }
 
@@ -157,6 +189,18 @@ func (t *Turret) SetForDeletion(g *world.Grid) {
 func (t *Turret) Draw(screen *ebiten.Image) {
 	t.Base.Draw(t.opts, screen)
 	t.Gun.Draw(t.gunOpts, screen)
-	ebitenutil.DrawRect(screen, float64(t.x*64+2), float64(t.y*64+58), 60, 4, colornames.Red)
-	ebitenutil.DrawRect(screen, float64(t.x*64+2), float64(t.y*64+58), (float64(t.Base.GetHealth())/50)*60, 4, colornames.Green)
+	if int(t.upgradeCounter) < len(t.upgradeEffect) {
+		t.opts.GeoM.Translate(0, -16)
+		screen.DrawImage(t.upgradeEffect[int(t.upgradeCounter)], t.opts)
+		t.opts.GeoM.Translate(0, 16)
+	}
+	if t.EnemyTarget == nil {
+		ebitenutil.DebugPrintAt(screen, "NNN", int(t.PixelX+2), int(t.PixelY))
+	} else if !t.EnemyTarget.IsAlive() {
+		ebitenutil.DebugPrintAt(screen, "DDD", int(t.PixelX+2), int(t.PixelY))
+	} else {
+		ebitenutil.DebugPrintAt(screen, "AAA", int(t.PixelX+2), int(t.PixelY))
+	}
+	t.DrawGui(screen)
+
 }

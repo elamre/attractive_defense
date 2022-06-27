@@ -94,8 +94,8 @@ func NewEliteScoutEnemy(pixelX, pixelY float64) EnemyInterface {
 }
 
 func initScoutEnemyImages() {
-	scoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemy)
-	shieldedScoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemy) // TODO
-	heavyScoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemy)    // TODO
-	eliteScoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemy)    // TODO
+	scoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemyScoutLight)
+	shieldedScoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemyScoutShielded)
+	heavyScoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemyScoutHeavy)
+	eliteScoutEnemyHull.image = assets.Get[*ebiten.Image](assets.AssetsEnemyScoutElite)
 }
