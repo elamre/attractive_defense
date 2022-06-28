@@ -70,6 +70,19 @@ func (b *Turret) Alive() bool {
 	return b.Health >= 1
 }
 
+func (t *Turret) SetClosest(enemyInterface []*enemies.EnemyInterface) {
+	closest := 9999999.0
+	for i := range enemyInterface {
+		e := *enemyInterface[i]
+		x, y := e.GetPixelPosition()
+		distance := tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, float64(x), float64(y))
+		if distance < closest {
+			t.EnemyTarget = e
+			closest = distance
+		}
+	}
+}
+
 func (t *Turret) CheckAndSetTarget(enemyInterface enemies.EnemyInterface) {
 	x, y := enemyInterface.GetPixelPosition()
 	distance := tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, float64(x), float64(y))
@@ -77,21 +90,22 @@ func (t *Turret) CheckAndSetTarget(enemyInterface enemies.EnemyInterface) {
 		if !t.EnemyTarget.IsAlive() {
 			t.EnemyTarget = enemyInterface
 		}
-		curX, curY := enemyInterface.GetPixelPosition()
+		curX, curY := t.EnemyTarget.GetPixelPosition()
 		curDistance := tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, float64(curX), float64(curY))
 		if distance < curDistance {
 			t.EnemyTarget = enemyInterface
 		}
 		return
-	}
-	if distance <= 200 {
+	} else {
 		t.EnemyTarget = enemyInterface
 	}
 
 }
 
 func (t *Turret) Trigger(x, y int, other interface{}) {
-	t.CheckAndSetTarget(other.(enemies.EnemyInterface))
+	if t.EnemyKilledCb != nil {
+		t.EnemyKilledCb()
+	}
 }
 
 func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface, g *world.Grid) *Turret {

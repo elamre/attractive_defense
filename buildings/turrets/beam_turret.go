@@ -20,9 +20,9 @@ func (l *beamTurretGun) Fire(x, y, tX, tY float64, manager *world.ProjectoryMana
 
 func (l *beamTurretGun) ReloadTime() int {
 	if l.level >= 3 {
-		return 15
+		return 1
 	}
-	return 30
+	return 3
 }
 
 func (l *beamTurretGun) GetUpgradeButton() *ebiten.Image {
@@ -73,9 +73,9 @@ func (l *beamTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
 func newbeamTurretGun() *beamTurretGun {
 	return &beamTurretGun{
 		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_beam_1),
-		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiHeavyTurretUpgrade),
+		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiBeamTurretUpgrade),
 		level:         1,
-		bulletEffects: world.ProjectileEffect{Damage: 40, Speed: 3},
+		bulletEffects: world.ProjectileEffect{Damage: 2, Speed: 8},
 	}
 }
 

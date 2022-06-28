@@ -10,6 +10,7 @@ var (
 	buyHeavyTurret  *Button
 	buyBeamTurret   *Button
 	buyRocketTurret *Button
+	buyResearch     *Button
 )
 
 var (
@@ -33,6 +34,7 @@ func InitButtons() map[string]bool {
 	buyHeavyTurret = NewHeavyTurretButton()
 	buyBeamTurret = NewBeamTurretButton()
 	buyRocketTurret = NewRocketTurretButton()
+	buyResearch = NewResearchBuildingButton()
 
 	return unlocked
 }

@@ -25,3 +25,22 @@ func NewMagnetButton() *Button {
 		},
 	}
 }
+
+func NewResearchBuildingButton() *Button {
+	return &Button{
+		image:       assets.Get[*ebiten.Image](assets.AssetsGuiResearchLab),
+		cost:        ResearchCost,
+		description: "Research lab for new guns and other improvements",
+		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
+			if IsBuildable(g) {
+				p.Risk++
+				gui.NoticeLevel = p.Risk
+				e := buildings.NewResearchLab(g.SelectedGridX, g.SelectedGridY)
+				g.SetGrid(g.SelectedGridX, g.SelectedGridY, world.GridLevelStructures, e)
+				gui.SetResearchContext(p, e)
+				return true
+			}
+			return false
+		},
+	}
+}

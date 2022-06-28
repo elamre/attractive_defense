@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/attractive_defense/buildings"
 	"github.com/elamre/attractive_defense/buildings/turrets"
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/platforms"
@@ -49,7 +50,7 @@ func NewSideGui(pixelX, pixelY int) *SideGui {
 		Rows:               8,
 		NoticeLevel:        1,
 		available:          InitButtons(),
-		showingBuildings:   true,
+		showingBuildings:   false,
 		sellButton:         NewSellButton(),
 		repairButton:       NewRepairButton(),
 	}
@@ -70,13 +71,43 @@ func (s *SideGui) NoButtonsContext() {
 	s.buttonArray = []*Button{}
 }
 
-func (s *SideGui) SetBuildingContext() {
-	s.buttonArray = GetBuildingButtons(s.available)
+func (s *SideGui) SetBuildingContext(p *game.Player) {
+	s.buttonArray = []*Button{}
+	s.buttonArray = append(s.buttonArray, buyMagnet)
+	s.buttonArray = append(s.buttonArray, buyResearch)
+	s.buttonArray = append(s.buttonArray, buyLightTurret)
+	s.buttonArray = append(s.buttonArray, buyHeavyTurret)
+	if p.BeamResearch {
+		s.buttonArray = append(s.buttonArray, buyBeamTurret)
+	}
+	if p.RocketResearch {
+		s.buttonArray = append(s.buttonArray, buyRocketTurret)
+	}
+}
+
+func (s *SideGui) SetResearchContext(p *game.Player, researchLab world.GridEntity) {
+	lab := researchLab.(*buildings.ResearchLab)
+	s.buttonArray = []*Button{}
+	if !p.FastRepairBeing {
+		s.buttonArray = append(s.buttonArray, NewRepairUpgradeButton(lab))
+	}
+	if !p.RocketBeingResearch {
+		s.buttonArray = append(s.buttonArray, NewResearchRocket(lab))
+	}
+	if !p.BeamBeingResearch {
+		s.buttonArray = append(s.buttonArray, NewResearchBeam(lab))
+	}
+	if !p.DoubleBeingMoney {
+		s.buttonArray = append(s.buttonArray, NewResearchMoney(lab))
+	}
+
 }
 
 func (s *SideGui) SetBuildingSelectedContext(p *game.Player, e world.GridEntity) {
 	if t, ok := e.(*turrets.Turret); ok {
 		s.buttonArray = []*Button{NewUpgradableButton(t.Gun, e), NewUpgradableButton(t.Base, e)}
+	} else if _, ok := e.(*buildings.ResearchLab); ok {
+		s.SetResearchContext(p, e)
 	}
 }
 
@@ -151,7 +182,8 @@ func (s *SideGui) Update(p *game.Player, g *world.Grid, camera *Camera) {
 				if e := g.GetGridEntity(x, y, world.GridLevelStructures); e != nil {
 					s.SetBuildingSelectedContext(p, e)
 				} else if g.GetGridEntity(x, y, world.GridLevelPlatform) != nil {
-					s.SetBuildingContext()
+					s.showingBuildings = true
+					s.SetBuildingContext(p)
 				}
 			}
 		}

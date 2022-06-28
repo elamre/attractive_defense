@@ -40,12 +40,12 @@ func (l *rocketTurretGun) Upgrade() {
 	switch l.level {
 	case 1:
 		l.bulletEffects.Damage *= 1.5
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_2)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_rocket_2)
 	case 2:
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_3)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_rocket_3)
 	case 3:
 		l.bulletEffects.Speed *= 2
-		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_4)
+		l.image = assets.Get[*ebiten.Image](assets.AssetsTurretGun_rocket_4)
 	default:
 		panic("Should never get here")
 	}
@@ -72,8 +72,8 @@ func (l *rocketTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Imag
 
 func newrocketTurretGun() *rocketTurretGun {
 	return &rocketTurretGun{
-		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_1),
-		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiHeavyTurretUpgrade),
+		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_rocket_1),
+		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiRocketTurretUpgrade),
 		level:         1,
 		bulletEffects: world.ProjectileEffect{Damage: 40, Speed: 3},
 	}

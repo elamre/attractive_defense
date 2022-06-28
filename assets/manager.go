@@ -61,10 +61,16 @@ const (
 	AssetsGuiRocketTurretUpgrade = "AssetsGuiRocketTurretUpgrade"
 	AssetsGuiBaseUpgrade         = "AssetsGuiBaseUpgrade"
 	AssetsGuiMagnet              = "AssetsGuiMagnet"
+	AssetsGuiResearchLab         = "AssetsGuiResearchLab"
+	AssetsGuiResearchBeam        = "AssetsGuiResearchBeam"
+	AssetsGuiResearchRocket      = "AssetsGuiResearchRocket"
+	AssetsGuiResearchRepair      = "AssetsGuiResearchRepair"
+	AssetsGuiResearchMoney       = "AssetsGuiResearchMoney"
 
-	AssetsGuiSelectAnim = "AssetsGuiSelectAnim"
-	AssetsBuildAnim     = "AssetsBuildAnim"
-	AssetsUpgradeAnim   = "AssetsUpgradeAnim"
+	AssetsGuiSelectAnim   = "AssetsGuiSelectAnim"
+	AssetsBuildAnim       = "AssetsBuildAnim"
+	AssetsUpgradeAnim     = "AssetsUpgradeAnim"
+	AssetsResearchLabAnim = "AssetsResearchLabAnim"
 
 	AssetsGuiTopPart            = "AssetsGuiTopPart"
 	AssetsGuiBottomBorder       = "AssetsGuiBottomBorder"
@@ -75,7 +81,7 @@ const (
 
 	AssetsPlayerCrystalAnim = "AssetsPlayerCrystal"
 
-	AssetsEnemy              = "AssetsEnemy"
+	AssetsShield             = "AssetsShield"
 	AssetsEnemyScoutLight    = "AssetsEnemyScoutLight"
 	AssetsEnemyScoutHeavy    = "AssetsEnemyScoutHeavy"
 	AssetsEnemyScoutShielded = "AssetsEnemyScoutShielded"
@@ -155,6 +161,7 @@ func GetManager() *tentsuyu.AssetsManager {
 			mm = append(mm, img)
 			manager.AssetMap[AssetsBuildAnim] = mm
 		}
+
 		manager.AssetMap[AssetsUpgradeAnim] = make([]*ebiten.Image, 0)
 		for i := 0; i < 12; i++ {
 			img := spriteset.SubImage(image.Rect(i*64, 13*64, 64+i*64, 13*64+64)).(*ebiten.Image)
@@ -162,6 +169,24 @@ func GetManager() *tentsuyu.AssetsManager {
 			mm = append(mm, img)
 			manager.AssetMap[AssetsUpgradeAnim] = mm
 		}
+
+		manager.AssetMap[AssetsResearchLabAnim] = make([]*ebiten.Image, 0)
+		for i := 2; i < 9; i++ {
+			img := spriteset.SubImage(image.Rect(i*64, 4*64, 64+i*64, 4*64+64)).(*ebiten.Image)
+			mm := manager.AssetMap[AssetsResearchLabAnim].([]*ebiten.Image)
+			mm = append(mm, img)
+			manager.AssetMap[AssetsResearchLabAnim] = mm
+		}
+
+		//AssetsGuiResearchLab
+		//AssetsGuiResearchBeam
+		//AssetsGuiResearchRocket
+		//AssetsResearchLabAnim
+		manager.AssetMap[AssetsGuiResearchLab] = spriteset.SubImage(image.Rect(1*64, 8*64, 59+1*64, 8*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiResearchBeam] = spriteset.SubImage(image.Rect(2*64, 8*64, 59+2*64, 8*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiResearchRocket] = spriteset.SubImage(image.Rect(3*64, 8*64, 59+3*64, 8*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiResearchRepair] = spriteset.SubImage(image.Rect(4*64, 8*64, 59+4*64, 8*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiResearchMoney] = spriteset.SubImage(image.Rect(5*64, 8*64, 59+5*64, 8*64+64)).(*ebiten.Image)
 
 		manager.AssetMap[AssetsGuiSell] = spriteset.SubImage(image.Rect(6*64, 6*64, 64+6*64, 6*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiRepair] = spriteset.SubImage(image.Rect(7*64, 6*64, 64+7*64, 6*64+64)).(*ebiten.Image)
@@ -178,6 +203,8 @@ func GetManager() *tentsuyu.AssetsManager {
 		manager.AssetMap[AssetsGuiLightTurretUpgrade] = spriteset.SubImage(image.Rect(0*64, 6*64, 59+0*64, 6*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiHeavyTurretUpgrade] = spriteset.SubImage(image.Rect(1*64, 6*64, 59+1*64, 6*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiBaseUpgrade] = spriteset.SubImage(image.Rect(2*64, 6*64, 59+2*64, 6*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiRocketTurretUpgrade] = spriteset.SubImage(image.Rect(3*64, 6*64, 59+3*64, 6*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsGuiBeamTurretUpgrade] = spriteset.SubImage(image.Rect(4*64, 6*64, 59+4*64, 6*64+64)).(*ebiten.Image)
 
 		manager.AssetMap[AssetsGuiLightTurret] = spriteset.SubImage(image.Rect(0*64, 7*64, 59+0*64, 7*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsGuiHeavyTurret] = spriteset.SubImage(image.Rect(1*64, 7*64, 59+1*64, 7*64+64)).(*ebiten.Image)
@@ -187,13 +214,15 @@ func GetManager() *tentsuyu.AssetsManager {
 		manager.AssetMap[AssetsGuiMagnet] = spriteset.SubImage(image.Rect(0*64, 8*64, 59+0*64, 8*64+64)).(*ebiten.Image)
 
 		manager.AssetMap[AssetsEnemyScoutLight] = spriteset.SubImage(image.Rect(0*64, 3*64, 64+0*64, 3*64+64)).(*ebiten.Image)
-		manager.AssetMap[AssetsEnemyScoutHeavy] = spriteset.SubImage(image.Rect(1*64, 3*64, 64+1*64, 3*64+64)).(*ebiten.Image)
-		manager.AssetMap[AssetsEnemyScoutShielded] = spriteset.SubImage(image.Rect(2*64, 3*64, 64+2*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyScoutShielded] = spriteset.SubImage(image.Rect(1*64, 3*64, 64+1*64, 3*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsEnemyScoutHeavy] = spriteset.SubImage(image.Rect(2*64, 3*64, 64+2*64, 3*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsEnemyScoutElite] = spriteset.SubImage(image.Rect(3*64, 3*64, 64+3*64, 3*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsEnemyMediumLight] = spriteset.SubImage(image.Rect(4*64, 3*64, 64+4*64, 3*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsEnemyMediumHeavy] = spriteset.SubImage(image.Rect(5*64, 3*64, 64+5*64, 3*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsEnemyMediumShielded] = spriteset.SubImage(image.Rect(6*64, 3*64, 64+6*64, 3*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsEnemyMediumElite] = spriteset.SubImage(image.Rect(7*64, 3*64, 64+7*64, 3*64+64)).(*ebiten.Image)
+
+		manager.AssetMap[AssetsShield] = spriteset.SubImage(image.Rect(8*64, 3*64, 64+8*64, 3*64+64)).(*ebiten.Image)
 
 		deferList = append(deferList, func() {
 

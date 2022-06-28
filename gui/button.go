@@ -7,10 +7,11 @@ import (
 )
 
 const MagnetCost = 1000
-const LightTurretCost = 500
-const HeavyTurretCost = 2500
-const BeamTurretCost = 5000
-const RocketTurretCost = 10000
+const ResearchCost = 2000
+const LightTurretCost = 200
+const HeavyTurretCost = 600
+const BeamTurretCost = 1500
+const RocketTurretCost = 3000
 
 type Button struct {
 	cost        float64

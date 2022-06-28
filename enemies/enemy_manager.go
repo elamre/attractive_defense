@@ -27,7 +27,7 @@ var waves = []Wave{
 	{
 		[]WaveContent{
 			{
-				4,
+				8,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewScoutEnemy(pixelX, pixelY)
 				},
@@ -37,13 +37,13 @@ var waves = []Wave{
 	{
 		[]WaveContent{
 			{
-				4,
+				8,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewScoutEnemy(pixelX, pixelY)
 				},
 			},
 			{
-				2,
+				4,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewShieldedScoutEnemy(pixelX, pixelY)
 				},
@@ -53,13 +53,7 @@ var waves = []Wave{
 	{
 		[]WaveContent{
 			{
-				4,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewScoutEnemy(pixelX, pixelY)
-				},
-			},
-			{
-				4,
+				10,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewShieldedScoutEnemy(pixelX, pixelY)
 				},
@@ -68,6 +62,26 @@ var waves = []Wave{
 				2,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewHeavyScoutEnemy(pixelX, pixelY)
+				},
+			},
+		},
+	},
+	{
+		[]WaveContent{
+			{
+				20,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewScoutEnemy(pixelX, pixelY)
+				},
+			},
+		},
+	},
+	{
+		[]WaveContent{
+			{
+				4,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewEliteScoutEnemy(pixelX, pixelY)
 				},
 			},
 		},
@@ -141,6 +155,7 @@ func (e *EnemyManager) Update(g *world.Grid, p *game.Player, projectoryManager *
 				}
 			}
 		} else {
+			p.AddMoney(float64(enemy.GetReward()))
 			e.SetForRemoval(e.Entities[i])
 		}
 	}
@@ -155,4 +170,8 @@ func (e *EnemyManager) Draw(screen *ebiten.Image) {
 			enemy.Draw(screen)
 		}
 	}
+}
+
+func (e *EnemyManager) WaveNr() int {
+	return e.waveNumber
 }

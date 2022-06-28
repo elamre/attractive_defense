@@ -12,12 +12,21 @@ type Player struct {
 	Risk       int
 	repairing  map[*world.Building]bool
 	removeList []*world.Building
+
+	FastRepairBeing     bool
+	FastRepair          bool
+	DoubleBeingMoney    bool
+	DoubleMoney         bool
+	RocketBeingResearch bool
+	RocketResearch      bool
+	BeamBeingResearch   bool
+	BeamResearch        bool
 	//gui   *gui.BottomGui
 }
 
 func NewPlayer() *Player {
 
-	return &Player{Money: 5000, Risk: 1, repairing: make(map[*world.Building]bool), removeList: make([]*world.Building, 0)}
+	return &Player{Money: 50000, Risk: 1, repairing: make(map[*world.Building]bool), removeList: make([]*world.Building, 0), BeamResearch: true, RocketResearch: true}
 }
 
 func (p *Player) AddRepairing(b *world.Building) {
@@ -28,6 +37,10 @@ func (p *Player) UpdatePlayer(g *world.Grid) {
 	for k, _ := range p.repairing {
 		if k.Repairing {
 			if p.Money > k.RepairPerTick() {
+				if p.FastRepair {
+					k.RepairTick()
+					k.RepairTick()
+				}
 				if k.RepairTick() {
 					p.Money -= k.RepairPerTick()
 					if !k.Repairing {
@@ -51,4 +64,28 @@ func (p *Player) DrawPlayer(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("$$$ %d", int(p.Money)), 0, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("fps: %.2f", ebiten.CurrentFPS()), 0, 20)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("tps: %.2f", ebiten.CurrentTPS()), 0, 40)
+}
+
+func (p *Player) WaveFinished(waveNumber, attentionLevel int) {
+	p.Risk = attentionLevel
+
+	p.AddMoney(float64(waveNumber+1) * 100)
+
+}
+
+func (p *Player) AddMoney(reward float64) {
+	multiPlier := 1.0
+	if p.Risk >= 8 {
+		multiPlier += 0.5
+	}
+	if p.Risk >= 16 {
+		multiPlier += 0.5
+	}
+	if p.Risk >= 23 {
+		multiPlier += 0.5
+	}
+	p.Money += reward * multiPlier
+	if p.DoubleMoney {
+		p.Money += reward * multiPlier
+	}
 }

@@ -1,6 +1,7 @@
 package enemies
 
 import (
+	"github.com/elamre/attractive_defense/assets"
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/elamre/tentsuyu"
@@ -12,16 +13,19 @@ import (
 type BasicEnemy struct {
 	*EnemyHullSpecifications
 	*EnemyTurretSpecifications
-	curSpeed       float64
-	pixelX, pixelY float64
-	target         world.Targetable
-	moveVec        tentsuyu.Vector2d
-	dst            ebiten.DrawImageOptions
-	hitbox         tentsuyu.Rectangle
-	health         float64
-	distLeft       float64
-	prevX, prevY   int
-	shootCounter   int
+	curSpeed          float64
+	pixelX, pixelY    float64
+	target            world.Targetable
+	moveVec           tentsuyu.Vector2d
+	dst               ebiten.DrawImageOptions
+	hitbox            tentsuyu.Rectangle
+	health            float64
+	distLeft          float64
+	prevX, prevY      int
+	shootCounter      int
+	shield            *ebiten.Image
+	shieldPct         int
+	shieldRechargeCnt int
 }
 
 func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hull *EnemyHullSpecifications) EnemyInterface {
@@ -33,9 +37,11 @@ func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hu
 		prevX:                     -1,
 		prevY:                     -1,
 		curSpeed:                  3,
-		health:                    20,
+		health:                    float64(hull.maxHealth),
+		shieldPct:                 hull.maxShield,
 		hitbox:                    tentsuyu.Rectangle{W: hull.width, H: hull.height},
 	}
+	b.shield = assets.Get[*ebiten.Image](assets.AssetsShield)
 	return &b
 }
 func (b *BasicEnemy) CheckCollision(projectoryInterface world.ProjectoryInterface) bool {
@@ -43,12 +49,27 @@ func (b *BasicEnemy) CheckCollision(projectoryInterface world.ProjectoryInterfac
 		c := projectoryInterface.GetHitBox()
 		if b.hitbox.Contains(c.X, c.Y) {
 			projectoryInterface.Impact()
-			b.health -= projectoryInterface.GetProjectileEffect().Damage
+			if b.maxShield > 0 {
+				b.shieldRechargeCnt = 0
+			}
+			if b.shieldPct > 0 {
+				b.shieldPct -= int(projectoryInterface.GetProjectileEffect().Damage)
+				if b.shieldPct < 0 {
+					b.health -= math.Abs(float64(b.shieldPct))
+					b.shieldPct = 0
+				}
+			} else {
+				b.health -= projectoryInterface.GetProjectileEffect().Damage
+			}
 			return true
 		}
 	}
 	return false
 }
+func (b *BasicEnemy) GetReward() int {
+	return b.reward
+}
+
 func (b *BasicEnemy) GetTarget() world.Targetable {
 	return b.target
 }
@@ -75,6 +96,16 @@ func (b *BasicEnemy) SetTarget(target world.Targetable) {
 }
 
 func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *world.ProjectoryManager) {
+	if b.maxShield > 0 {
+		if b.shieldPct < b.maxShield {
+			b.shieldRechargeCnt++
+			if b.shieldRechargeCnt > 30 {
+				b.shieldPct++
+			}
+		} else {
+			b.shieldRechargeCnt = 0
+		}
+	}
 	if b.target == nil {
 		return
 	}
@@ -113,6 +144,9 @@ func (b *BasicEnemy) IsAlive() bool {
 
 func (b *BasicEnemy) Draw(screen *ebiten.Image) {
 	screen.DrawImage(b.image, &b.dst)
+	if b.shieldPct > 0 {
+		screen.DrawImage(b.shield, &b.dst)
+	}
 }
 
 func (b *BasicEnemy) GetPixelPosition() (int, int) {

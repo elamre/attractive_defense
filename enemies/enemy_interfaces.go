@@ -14,6 +14,7 @@ type EnemyInterface interface {
 	IsAlive() bool
 	Draw(screen *ebiten.Image)
 	GetPixelPosition() (int, int)
+	GetReward() int
 }
 
 type EnemyHullSpecifications struct {
@@ -23,6 +24,7 @@ type EnemyHullSpecifications struct {
 	height    int
 	maxHealth int
 	maxShield int
+	reward    int
 }
 
 type EnemyTurretSpecifications struct {

@@ -16,11 +16,12 @@ import (
 )
 
 type AD struct {
-	g      *world.Grid
-	p      *game.Player
-	gui2   *gui.SideGui
-	world  *ebiten.Image
-	camera gui.Camera
+	g           *world.Grid
+	p           *game.Player
+	gui2        *gui.SideGui
+	world       *ebiten.Image
+	camera      gui.Camera
+	textOverlay *TextOverlay
 
 	projectoryManager *world.ProjectoryManager
 	enemyManager      *enemies.EnemyManager
@@ -39,18 +40,14 @@ func NewAttractiveDefense(width, height int) *AD {
 	camera := gui.Camera{ViewPort: f64.Vec2{800, 600}}
 
 	grid.SetGrid(5, 5, world.GridLevelStructures, buildings.NewLifeCrystal(5, 5, &grid))
+	grid.SetGrid(6, 5, world.GridLevelStructures, buildings.NewResearchLab(6, 5))
 
 	grid.GridChangeCallback = func(x, y, z int, entity world.GridEntity) {
 		if z == world.GridLevelStructures {
 			if entity != nil {
 				if turret, ok := entity.(*turrets.Turret); ok {
 					turret.EnemyKilledCb = func() {
-						for i := range enemyManager.Entities {
-							turret.CheckAndSetTarget(*enemyManager.Entities[i])
-						}
-					}
-					for i := range enemyManager.Entities {
-						turret.CheckAndSetTarget(*enemyManager.Entities[i])
+						turret.SetClosest(enemyManager.Entities)
 					}
 				}
 			}
@@ -65,6 +62,7 @@ func NewAttractiveDefense(width, height int) *AD {
 		camera:            camera,
 		projectoryManager: projectory,
 		enemyManager:      enemyManager,
+		textOverlay:       NewTextOverlay(),
 	}
 
 	return &ad
@@ -80,16 +78,27 @@ func (ad *AD) Update() error {
 	ad.enemyManager.Update(ad.g, ad.p, ad.projectoryManager)
 	x, y := ebiten.CursorPosition()
 
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		if ad.enemyManager.ShouldSpawn() {
+	if ad.enemyManager.ShouldSpawn() && !ad.textOverlay.neverStarted {
+		if ad.textOverlay.Finished() {
 			ad.enemyManager.Spawn(ad.g, ad.gui2.NoticeLevel)
+			ad.textOverlay.Reset()
+		} else if !ad.textOverlay.started {
+			ad.textOverlay.StartCountdown()
+			ad.p.WaveFinished(ad.enemyManager.WaveNr(), ad.gui2.NoticeLevel)
+		}
+	} else if ad.textOverlay.neverStarted {
+		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && ad.textOverlay.neverStarted {
+			ad.enemyManager.Spawn(ad.g, ad.gui2.NoticeLevel)
+			ad.textOverlay.neverStarted = false
 		}
 	}
+
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		cMx, cMy := ad.camera.ScreenToWorld(x, y)
 		ad.enemyManager.AddEnemy(enemies.NewScoutEnemy(cMx, cMy), ad.g)
 	}
 	ad.gui2.InGui(x, y)
+	ad.textOverlay.Update()
 	return nil
 }
 
@@ -103,6 +112,7 @@ func (ad *AD) Draw(screen *ebiten.Image) {
 	ad.p.DrawPlayer(screen)
 	ad.gui2.Draw(screen)
 	ad.world.Clear()
+	ad.textOverlay.Draw(screen)
 }
 
 func (ad *AD) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

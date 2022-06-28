@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/elamre/gameutil v0.1.1
-	github.com/elamre/go_helpers v0.0.3
 	github.com/elamre/tentsuyu v0.3.0
 	github.com/hajimehoshi/ebiten/v2 v2.3.0-rc.1
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9
@@ -25,4 +24,5 @@ require (
 	golang.org/x/mobile v0.0.0-20220325161704-447654d348e3 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f // indirect
+	golang.org/x/text v0.3.7 // indirect
 )
