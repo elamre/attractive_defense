@@ -24,7 +24,7 @@ var stars game.StarBackground
 func NewAttractiveDefense(width, height int) *AD {
 	assets.StaticSoundManager = assets.NewSoundManager()
 
-	return &AD{gameScreen: NewGameScreen(800, 600, width, height), menuScreen: NewMainMenu(), whichScreen: InGameScreen, splayScreen: NewSplashScreen()}
+	return &AD{gameScreen: NewGameScreen(800, 600, width, height), menuScreen: NewMainMenu(), whichScreen: InSplashScreen, splayScreen: NewSplashScreen()}
 }
 
 func (ad *AD) Update() error {
