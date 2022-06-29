@@ -62,7 +62,7 @@ func (e *EnemyManager) Spawn(g *world.Grid, difficulty int) int {
 			wave = append(wave, SoutWaves[e.waveNumber%len(SoutWaves)].content[i])
 		}
 		for i := range heaviesWave[e.waveNumber%len(heaviesWave)].content {
-			wave = append(wave, heaviesWave[e.waveNumber-len(heaviesWave)].content[i])
+			wave = append(wave, heaviesWave[e.waveNumber%len(heaviesWave)].content[i])
 		}
 	}
 	for i := range wave {
