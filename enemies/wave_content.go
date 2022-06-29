@@ -101,6 +101,28 @@ var SoutWaves = []Wave{
 	{
 		[]WaveContent{
 			{
+				2,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewEliteScoutEnemy(pixelX, pixelY)
+				},
+			},
+			{
+				4,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewScoutEnemy(pixelX, pixelY)
+				},
+			},
+			{
+				2,
+				func(pixelX, pixelY float64) EnemyInterface {
+					return NewHeaviesEnemy(pixelX, pixelY)
+				},
+			},
+		},
+	},
+	{
+		[]WaveContent{
+			{
 				4,
 				func(pixelX, pixelY float64) EnemyInterface {
 					return NewEliteScoutEnemy(pixelX, pixelY)

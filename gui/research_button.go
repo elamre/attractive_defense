@@ -19,7 +19,7 @@ func NewRepairUpgradeButton(lab *buildings.ResearchLab) *Button {
 			}
 			p.FastRepairBeing = true
 			gui.SetResearchContext(p, lab)
-			lab.StartResearch(1200, func() {
+			lab.StartResearch(1000, func() {
 				p.FastRepair = true
 				assets.StaticSoundManager.PlayResearchComplete()
 			})
@@ -55,14 +55,14 @@ func NewResearchRocket(lab *buildings.ResearchLab) *Button {
 	return &Button{
 		description: "Unlocks the rocket turret, strongest of them all, but slow",
 		image:       assets.Get[*ebiten.Image](assets.AssetsGuiResearchRocket),
-		cost:        1500,
+		cost:        800,
 		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
 			if p.RocketBeingResearch || lab.ResearchInProgress() {
 				return false
 			}
 			p.RocketBeingResearch = true
 			gui.SetResearchContext(p, lab)
-			lab.StartResearch(800, func() {
+			lab.StartResearch(500, func() {
 				p.RocketResearch = true
 				if gui.showingBuildings {
 					gui.SetBuildingContext(p)
@@ -85,7 +85,7 @@ func NewResearchMoney(lab *buildings.ResearchLab) *Button {
 			}
 			p.DoubleBeingMoney = true
 			gui.SetResearchContext(p, lab)
-			lab.StartResearch(1800, func() {
+			lab.StartResearch(1200, func() {
 				p.DoubleMoney = true
 				assets.StaticSoundManager.PlayResearchComplete()
 			})

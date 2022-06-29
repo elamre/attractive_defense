@@ -11,8 +11,8 @@ const MagnetCost = 1000
 const ResearchCost = 1500
 const LightTurretCost = 200
 const HeavyTurretCost = 600
-const BeamTurretCost = 1500
-const RocketTurretCost = 3000
+const BeamTurretCost = 1000
+const RocketTurretCost = 1500
 
 type Button struct {
 	cost        float64
