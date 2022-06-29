@@ -2,6 +2,7 @@ package turrets
 
 import (
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/attractive_defense/enemies"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -11,18 +12,27 @@ type rocketTurretGun struct {
 	upgradeButton *ebiten.Image
 	level         int
 	bulletEffects world.ProjectileEffect
+	findRange     int
+	burstCounter  int
+	burstShots    int
 }
 
-func (l *rocketTurretGun) Fire(x, y, tX, tY float64, manager *world.ProjectoryManager) {
-	p := world.NewSmallProjectile(x, y, tX, tY, &l.bulletEffects, 250)
-	manager.AddPlayerProjectile(p)
+func (l *rocketTurretGun) Range() int {
+	return l.findRange
+}
+func (l *rocketTurretGun) Fire(x, y, tX, tY float64, enemyInterface enemies.EnemyInterface, manager *world.ProjectoryManager) {
+	if l.burstShots > 0 {
+		p := world.NewHeavyProjectile(x, y, tX, tY, &l.bulletEffects, 250)
+		manager.AddPlayerProjectile(p)
+		l.burstShots--
+		if l.burstShots == 0 {
+			l.burstCounter = 120
+		}
+	}
 }
 
 func (l *rocketTurretGun) ReloadTime() int {
-	if l.level >= 3 {
-		return 15
-	}
-	return 30
+	return 15
 }
 
 func (l *rocketTurretGun) GetUpgradeButton() *ebiten.Image {
@@ -37,6 +47,7 @@ func (l *rocketTurretGun) UpgradeCost() int {
 }
 
 func (l *rocketTurretGun) Upgrade() {
+	l.findRange += 20
 	switch l.level {
 	case 1:
 		l.bulletEffects.Damage *= 1.5
@@ -64,7 +75,12 @@ func (d *rocketTurretGun) Description() string {
 	}
 }
 func (l *rocketTurretGun) Update(target world.Targetable) {
-
+	if l.burstCounter > 0 {
+		l.burstCounter--
+		if l.burstCounter == 0 {
+			l.burstShots = 3
+		}
+	}
 }
 func (l *rocketTurretGun) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
 	screen.DrawImage(l.image, dst)
@@ -75,11 +91,14 @@ func newrocketTurretGun() *rocketTurretGun {
 		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_rocket_1),
 		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiRocketTurretUpgrade),
 		level:         1,
-		bulletEffects: world.ProjectileEffect{Damage: 40, Speed: 3},
+		bulletEffects: world.ProjectileEffect{Damage: 100, Speed: 12},
+		findRange:     64 * 5,
+		burstShots:    3,
 	}
 }
 
 func NewRocketTurret(x, y int, g *world.Grid) *Turret {
 	b := newDefaultBase()
+	b.maxHealth = 200
 	return NewTurret(x, y, newrocketTurretGun(), b, g)
 }

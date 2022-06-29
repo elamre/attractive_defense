@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -18,6 +19,9 @@ type TextOverlay struct {
 	neverStarted      bool
 	started           bool
 	mplusNormalFont   font.Face
+	gameOver          bool
+	score             int
+	pause             bool
 }
 
 func NewTextOverlay() *TextOverlay {
@@ -42,6 +46,15 @@ func NewTextOverlay() *TextOverlay {
 	return &t
 }
 
+func (t *TextOverlay) SetGameOver(gameOver bool, score int) {
+	t.gameOver = gameOver
+	t.score = score
+}
+
+func (t *TextOverlay) TogglePause() {
+	t.pause = !t.pause
+}
+
 func (t *TextOverlay) StartCountdown() {
 	t.neverStarted = false
 	t.started = true
@@ -60,6 +73,11 @@ func (t *TextOverlay) Update() {
 	if t.neverStarted {
 		return
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) && t.started {
+		t.countdownTimer = -1
+		t.waveFinishedTimer = -1
+		t.goTimer = -1
+	}
 	if t.waveFinishedTimer != -1 {
 		t.waveFinishedTimer++
 		if t.waveFinishedTimer >= 60*3 {
@@ -68,7 +86,7 @@ func (t *TextOverlay) Update() {
 		}
 	} else if t.countdownTimer != -1 {
 		t.countdownTimer++
-		if t.countdownTimer >= 60*5 {
+		if t.countdownTimer >= 60*10 {
 			t.countdownTimer = -1
 			t.goTimer = 0
 		}
@@ -86,7 +104,7 @@ func (t *TextOverlay) Draw(screen *ebiten.Image) {
 	if t.goTimer != -1 {
 		ss = "GO!"
 	} else if t.countdownTimer != -1 {
-		ss = fmt.Sprintf("%d", 5-(t.countdownTimer/60))
+		ss = fmt.Sprintf("%d", 10-(t.countdownTimer/60))
 		//text.Draw(screen, fmt.Sprintf("%d", 5-(t.countdownTimer/60)), t.mplusNormalFont, 350, 360, color.White)
 	} else if t.waveFinishedTimer != -1 {
 		ss = "Wave Finished"
@@ -94,7 +112,14 @@ func (t *TextOverlay) Draw(screen *ebiten.Image) {
 	} else if t.neverStarted {
 		ss = "Press space to start"
 	}
-	if !t.Finished() || t.neverStarted {
+	if t.pause {
+		ss = "        Game Paused\n" +
+			"Press escape to continue"
+	}
+	if t.gameOver {
+		ss = fmt.Sprintf("Game Over\nScore: %d\nEscape To Restart", t.score)
+	}
+	if !t.Finished() || t.neverStarted || t.pause {
 		tt := text.BoundString(t.mplusNormalFont, ss)
 		text.Draw(screen, ss, t.mplusNormalFont, 400-tt.Size().X/2, 300-tt.Size().Y/2, color.White)
 	}

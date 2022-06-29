@@ -21,6 +21,7 @@ func NewRepairUpgradeButton(lab *buildings.ResearchLab) *Button {
 			gui.SetResearchContext(p, lab)
 			lab.StartResearch(1200, func() {
 				p.FastRepair = true
+				assets.StaticSoundManager.PlayResearchComplete()
 			})
 			return true
 		},
@@ -31,18 +32,19 @@ func NewResearchBeam(lab *buildings.ResearchLab) *Button {
 	return &Button{
 		description: "Unlocks the beam turret, extra strong",
 		image:       assets.Get[*ebiten.Image](assets.AssetsGuiResearchBeam),
-		cost:        1000,
+		cost:        500,
 		selected: func(p *game.Player, gui *SideGui, g *world.Grid) bool {
 			if p.BeamBeingResearch || lab.ResearchInProgress() {
 				return false
 			}
 			p.BeamBeingResearch = true
 			gui.SetResearchContext(p, lab)
-			lab.StartResearch(800, func() {
+			lab.StartResearch(400, func() {
 				p.BeamResearch = true
 				if gui.showingBuildings {
 					gui.SetBuildingContext(p)
 				}
+				assets.StaticSoundManager.PlayResearchComplete()
 			})
 			return true
 		},
@@ -65,6 +67,7 @@ func NewResearchRocket(lab *buildings.ResearchLab) *Button {
 				if gui.showingBuildings {
 					gui.SetBuildingContext(p)
 				}
+				assets.StaticSoundManager.PlayResearchComplete()
 			})
 			return true
 		},
@@ -84,6 +87,7 @@ func NewResearchMoney(lab *buildings.ResearchLab) *Button {
 			gui.SetResearchContext(p, lab)
 			lab.StartResearch(1800, func() {
 				p.DoubleMoney = true
+				assets.StaticSoundManager.PlayResearchComplete()
 			})
 			return true
 		},

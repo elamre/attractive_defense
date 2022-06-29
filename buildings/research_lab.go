@@ -17,10 +17,12 @@ type ResearchLab struct {
 	researchCb          func()
 	researchDuration    int
 	researchMaxDuration int
+	setForDeletion      bool
+	deleted             bool
 }
 
 func (b *ResearchLab) SetForDeletion(g *world.Grid) {
-
+	b.setForDeletion = true
 }
 
 func (b *ResearchLab) ResearchInProgress() bool {
@@ -34,6 +36,14 @@ func (b *ResearchLab) StartResearch(duration int, callBack func()) {
 }
 
 func (b *ResearchLab) Update(g *world.Grid) {
+	if !b.Alive() {
+		b.SetForDeletion(g)
+	}
+	if !b.deleted && b.setForDeletion {
+		g.SetGrid(b.GridX, b.GridY, world.GridLevelStructures, nil)
+		b.deleted = true
+	}
+
 	if b.researchDuration > 0 {
 		if b.startAnimCnt < 4 {
 			b.startAnimCnt++

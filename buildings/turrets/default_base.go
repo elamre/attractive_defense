@@ -9,6 +9,7 @@ type defaultBase struct {
 	image         *ebiten.Image
 	upgradeButton *ebiten.Image
 	maxHealth     float64
+	maxShield     int
 	level         int
 	armor         float64
 }
@@ -54,9 +55,10 @@ func (d *defaultBase) UpgradeCost() int {
 func (d *defaultBase) Upgrade() {
 	switch d.level {
 	case 1:
-		d.maxHealth = 100
+		d.maxHealth *= 2
 		d.image = assets.Get[*ebiten.Image](assets.AssetsTurretBase_2)
 	case 2:
+		d.maxShield = 30
 		d.image = assets.Get[*ebiten.Image](assets.AssetsTurretBase_3)
 	case 3:
 		d.armor = 0.8
@@ -69,8 +71,12 @@ func (d *defaultBase) Upgrade() {
 
 func (d *defaultBase) Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image) {
 	screen.DrawImage(d.image, dst)
+
 }
 
 func (d *defaultBase) TakeDamage(damage float64) float64 {
 	return damage / d.armor
+}
+func (d *defaultBase) GetMaxShield() int {
+	return d.maxShield
 }

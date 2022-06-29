@@ -1,11 +1,9 @@
 package world
 
 import (
-	"fmt"
 	"github.com/elamre/attractive_defense/assets"
 	"github.com/elamre/tentsuyu/tentsuyutils"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"log"
 )
 
@@ -71,6 +69,32 @@ func NewGrid(width, height, levels int) Grid {
 		SelectedGridY:       -1,
 		selectionImage:      assets.Get[[]*ebiten.Image](assets.AssetsGuiSelectAnim),
 		selectionImageCount: 0,
+	}
+}
+
+func (g *Grid) AddTriggerFuncs(trigger TriggerAble) {
+	for i := range g.triggerFields {
+		if g.triggerFields[i] == nil {
+			g.triggerFields[i] = make([]TriggerAble, 0)
+		}
+		g.triggerFields[i] = append(g.triggerFields[i], trigger)
+	}
+}
+
+func (g *Grid) RemoveTriggers(trigger TriggerAble) {
+	for idx := range g.triggerFields {
+		if len(g.triggerFields[idx]) == 1 {
+			g.triggerFields[idx] = g.triggerFields[idx][:0]
+		} else {
+			for i := range g.triggerFields[idx] {
+				if g.triggerFields[idx][i] == trigger {
+					g.triggerFields[idx][i] = g.triggerFields[idx][len(g.triggerFields[idx])-1]
+					g.triggerFields[idx] = g.triggerFields[idx][:len(g.triggerFields[idx])-1]
+					return
+				}
+			}
+			log.Printf("Could not be found!!! %+v : %+v", g.triggerFields[idx], trigger)
+		}
 	}
 }
 
@@ -242,11 +266,11 @@ func (g *Grid) DrawGrid(screen *ebiten.Image) {
 		opt.GeoM.Translate(float64(g.SelectedGridX*64), float64(g.SelectedGridY*64))
 		screen.DrawImage(g.selectionImage[g.selectionImageCount/10], &opt)
 	}
-	for y := 0; y < g.Height; y++ {
+	/*	for y := 0; y < g.Height; y++ {
 		for x := 0; x < g.Width; x++ {
 			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", g.magnetism[y*g.Width+x]), x*64, y*64)
 			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", len(g.triggerFields[y*g.Width+x])), x*64, y*64+12)
 			//ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", (g.triggered[y*g.Width+x])), x*64+24, y*64+12)
 		}
-	}
+	}*/
 }

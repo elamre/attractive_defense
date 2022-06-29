@@ -54,7 +54,7 @@ func NewSideGui(pixelX, pixelY int) *SideGui {
 		sellButton:         NewSellButton(),
 		repairButton:       NewRepairButton(),
 	}
-	s.buttonArray = GetBuildingButtons(s.available)
+	s.NoButtonsContext()
 	return s
 }
 

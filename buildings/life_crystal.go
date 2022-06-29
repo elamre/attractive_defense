@@ -14,6 +14,8 @@ type LifeCrystal struct {
 	startAnimCnt     int
 	drawOpt          *ebiten.DrawImageOptions
 	animCntDirection int
+	underAttackCnt   int
+	prevHealth       int
 }
 
 func (b *LifeCrystal) SetForDeletion(g *world.Grid) {
@@ -21,6 +23,9 @@ func (b *LifeCrystal) SetForDeletion(g *world.Grid) {
 }
 
 func (b *LifeCrystal) Update(g *world.Grid) {
+	if b.underAttackCnt > 0 {
+		b.underAttackCnt--
+	}
 	if b.animCntDirection == -1 && b.animCnt == 0 {
 		b.animCntDirection = 1
 		b.startAnimCnt = 0
@@ -43,6 +48,10 @@ func (d *LifeCrystal) GetBuilding() *world.Building {
 }
 
 func (b *LifeCrystal) InflictDamage(damage float64) {
+	if b.underAttackCnt == 0 {
+		assets.StaticSoundManager.PlayYourBaseUnderAttack()
+		b.underAttackCnt = 300
+	}
 	b.Health -= damage
 	if b.Health < 0 {
 		b.Health = 0
@@ -69,6 +78,7 @@ func NewLifeCrystal(x, y int, g *world.Grid) *LifeCrystal {
 			Health:    1000,
 			MaxHealth: 1000,
 		},
+		prevHealth:       1000,
 		anim:             assets.Get[[]*ebiten.Image](assets.AssetsPlayerCrystalAnim),
 		animCntDirection: 1,
 	}

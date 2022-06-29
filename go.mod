@@ -3,6 +3,7 @@ module github.com/elamre/attractive_defense
 go 1.18
 
 require (
+	github.com/elamre/debug_gui v0.0.0-20220511103115-5ac92b882c7b
 	github.com/elamre/gameutil v0.1.1
 	github.com/elamre/tentsuyu v0.3.0
 	github.com/hajimehoshi/ebiten/v2 v2.3.0-rc.1
@@ -10,6 +11,7 @@ require (
 )
 
 require (
+	github.com/elamre/go_helpers v0.0.3 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20220320163800-277f93cfa958 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect

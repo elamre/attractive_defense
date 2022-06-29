@@ -2,117 +2,73 @@ package main
 
 import (
 	"github.com/elamre/attractive_defense/assets"
-	"github.com/elamre/attractive_defense/buildings"
-	"github.com/elamre/attractive_defense/buildings/turrets"
-	"github.com/elamre/attractive_defense/enemies"
 	"github.com/elamre/attractive_defense/game"
-	"github.com/elamre/attractive_defense/gui"
-	"github.com/elamre/attractive_defense/world"
 	"github.com/elamre/gameutil"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"golang.org/x/image/math/f64"
 	"log"
 )
 
-type AD struct {
-	g           *world.Grid
-	p           *game.Player
-	gui2        *gui.SideGui
-	world       *ebiten.Image
-	camera      gui.Camera
-	textOverlay *TextOverlay
+const InSplashScreen = 1
+const InMenuScreen = 2
+const InGameScreen = 3
 
-	projectoryManager *world.ProjectoryManager
-	enemyManager      *enemies.EnemyManager
+type AD struct {
+	whichScreen int
+	gameScreen  *GameScreen
+	menuScreen  *MainMenu
+	splayScreen *SplashScreen
 }
 
 var stars game.StarBackground
 
 func NewAttractiveDefense(width, height int) *AD {
+	assets.StaticSoundManager = assets.NewSoundManager()
 
-	grid := world.NewGrid(width, height, 3)
-	projectory := world.NewProjectoryManager()
-	enemyManager := enemies.NewEnemyManager()
-	player := game.NewPlayer()
-	grid.ProjectoryMng = projectory
-	sideGui := gui.NewSideGui(800-128, 0)
-	camera := gui.Camera{ViewPort: f64.Vec2{800, 600}}
-
-	grid.SetGrid(5, 5, world.GridLevelStructures, buildings.NewLifeCrystal(5, 5, &grid))
-	grid.SetGrid(6, 5, world.GridLevelStructures, buildings.NewResearchLab(6, 5))
-
-	grid.GridChangeCallback = func(x, y, z int, entity world.GridEntity) {
-		if z == world.GridLevelStructures {
-			if entity != nil {
-				if turret, ok := entity.(*turrets.Turret); ok {
-					turret.EnemyKilledCb = func() {
-						turret.SetClosest(enemyManager.Entities)
-					}
-				}
-			}
-		}
-	}
-
-	ad := AD{
-		g:                 &grid,
-		p:                 player,
-		gui2:              sideGui,
-		world:             ebiten.NewImage(width*64, height*64),
-		camera:            camera,
-		projectoryManager: projectory,
-		enemyManager:      enemyManager,
-		textOverlay:       NewTextOverlay(),
-	}
-
-	return &ad
+	return &AD{gameScreen: NewGameScreen(800, 600, width, height), menuScreen: NewMainMenu(), whichScreen: InGameScreen, splayScreen: NewSplashScreen()}
 }
 
 func (ad *AD) Update() error {
-	stars.Update()
-	ad.camera.Update()
-	ad.g.UpdateGrid()
-	ad.p.UpdatePlayer(ad.g)
-	ad.gui2.Update(ad.p, ad.g, &ad.camera)
-	ad.projectoryManager.Update(ad.g)
-	ad.enemyManager.Update(ad.g, ad.p, ad.projectoryManager)
-	x, y := ebiten.CursorPosition()
-
-	if ad.enemyManager.ShouldSpawn() && !ad.textOverlay.neverStarted {
-		if ad.textOverlay.Finished() {
-			ad.enemyManager.Spawn(ad.g, ad.gui2.NoticeLevel)
-			ad.textOverlay.Reset()
-		} else if !ad.textOverlay.started {
-			ad.textOverlay.StartCountdown()
-			ad.p.WaveFinished(ad.enemyManager.WaveNr(), ad.gui2.NoticeLevel)
+	assets.StaticSoundManager.Update()
+	switch ad.whichScreen {
+	case InSplashScreen:
+		if ad.splayScreen.Update() {
+			ad.whichScreen = InMenuScreen
 		}
-	} else if ad.textOverlay.neverStarted {
-		if inpututil.IsKeyJustPressed(ebiten.KeySpace) && ad.textOverlay.neverStarted {
-			ad.enemyManager.Spawn(ad.g, ad.gui2.NoticeLevel)
-			ad.textOverlay.neverStarted = false
+	case InMenuScreen:
+		stars.Update()
+		ad.menuScreen.Update()
+		if ad.menuScreen.Exit() {
+			ad.splayScreen.up = true
+			ad.splayScreen.transparency = 0
+			ad.whichScreen = InSplashScreen
+		} else if ad.menuScreen.Start() {
+			ad.whichScreen = InGameScreen
 		}
+	case InGameScreen:
+		stars.Update()
+		ad.gameScreen.Update()
 	}
 
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-		cMx, cMy := ad.camera.ScreenToWorld(x, y)
-		ad.enemyManager.AddEnemy(enemies.NewScoutEnemy(cMx, cMy), ad.g)
-	}
-	ad.gui2.InGui(x, y)
-	ad.textOverlay.Update()
+	//
 	return nil
 }
 
 func (ad *AD) Draw(screen *ebiten.Image) {
-	stars.Draw(ad.world)
-	ad.g.DrawGrid(ad.world)
-	ad.enemyManager.Draw(ad.world)
-	ad.projectoryManager.Draw(ad.world)
+	switch ad.whichScreen {
+	case InSplashScreen:
+		ad.splayScreen.Draw(screen)
+	case InMenuScreen:
+		stars.Draw(ad.gameScreen.worldImage)
+		ad.gameScreen.Draw(screen)
+		ad.gameScreen.camera.Render(ad.gameScreen.worldImage, screen)
+		ad.menuScreen.Draw(screen)
+	case InGameScreen:
+		stars.Draw(ad.gameScreen.worldImage)
+		ad.gameScreen.Draw(screen)
+		ad.gameScreen.camera.Render(ad.gameScreen.worldImage, screen)
+		ad.gameScreen.DrawGui(screen)
+	}
 
-	ad.camera.Render(ad.world, screen)
-	ad.p.DrawPlayer(screen)
-	ad.gui2.Draw(screen)
-	ad.world.Clear()
-	ad.textOverlay.Draw(screen)
 }
 
 func (ad *AD) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -123,7 +79,7 @@ func main() {
 	gameutil.InitPixel()
 	log.SetFlags(log.Lshortfile)
 	assets.GetManager()
-	stars = game.NewStarBackground(300, 20*64, 16*64)
+	stars = game.NewStarBackground(600, 20*64, 16*64)
 	defer assets.CleanUp()
 	ebiten.SetWindowSize(800, 600)
 	if err := ebiten.RunGame(NewAttractiveDefense(20, 16)); err != nil {

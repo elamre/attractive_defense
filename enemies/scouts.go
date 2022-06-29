@@ -18,7 +18,7 @@ var heavyScoutProjectile = world.ProjectileEffect{
 
 var eliteScoutProjectile = world.ProjectileEffect{
 	Speed:  6,
-	Damage: 20,
+	Damage: 30,
 }
 
 var scoutEnemyTurret = EnemyTurretSpecifications{
@@ -38,7 +38,7 @@ var heavyScoutEnemyTurret = EnemyTurretSpecifications{
 }
 
 var eliteScoutEnemyTurret = EnemyTurretSpecifications{
-	reloadSpeed: 10,
+	reloadSpeed: 30,
 	targetRange: 100,
 	shoot: func(pixelX, pixelY, targetX, targetY float64, manager *world.ProjectoryManager) {
 		manager.AddEnemyProjectile(world.NewSmallProjectile(pixelX, pixelY, targetX, targetY, &eliteScoutProjectile, 100))
@@ -58,9 +58,9 @@ var shieldedScoutEnemyHull = EnemyHullSpecifications{
 	maxSpeed:  3,
 	width:     32,
 	height:    32,
-	maxHealth: 5,
-	maxShield: 80,
-	reward:    35,
+	maxHealth: 10,
+	maxShield: 40,
+	reward:    50,
 }
 
 var heavyScoutEnemyHull = EnemyHullSpecifications{
@@ -68,8 +68,8 @@ var heavyScoutEnemyHull = EnemyHullSpecifications{
 	width:     32,
 	height:    32,
 	maxHealth: 50,
-	maxShield: 50,
-	reward:    50,
+	maxShield: 20,
+	reward:    75,
 }
 
 var eliteScoutEnemyHull = EnemyHullSpecifications{
@@ -77,7 +77,7 @@ var eliteScoutEnemyHull = EnemyHullSpecifications{
 	width:     32,
 	height:    32,
 	maxHealth: 100,
-	maxShield: 100,
+	maxShield: 50,
 	reward:    100,
 }
 

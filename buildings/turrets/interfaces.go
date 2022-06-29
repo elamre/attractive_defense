@@ -7,7 +7,6 @@ import (
 	"github.com/elamre/attractive_defense/world"
 	"github.com/elamre/tentsuyu/tentsuyutils"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"math"
 )
 
@@ -19,6 +18,7 @@ type TurretBaseInterface interface {
 	Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
 	TakeDamage(damage float64) float64
 	GetMaxHealth() float64
+	GetMaxShield() int
 }
 
 type TurretGunInterface interface {
@@ -29,7 +29,8 @@ type TurretGunInterface interface {
 	Update(target world.Targetable)
 	Draw(dst *ebiten.DrawImageOptions, screen *ebiten.Image)
 	ReloadTime() int
-	Fire(x, y, tX, tY float64, manager *world.ProjectoryManager)
+	Range() int
+	Fire(x, y, tX, tY float64, enemyInterface enemies.EnemyInterface, manager *world.ProjectoryManager)
 }
 
 type Turret struct {
@@ -44,6 +45,8 @@ type Turret struct {
 	destroy        bool
 	shootTimer     int
 	EnemyKilledCb  func()
+	shield         float64
+	shieldCounter  int
 }
 
 func (d *Turret) Upgraded(able buildings.UpgradeAble) {
@@ -63,7 +66,12 @@ func (d *Turret) GetBuilding() *world.Building {
 
 func (b *Turret) InflictDamage(damage float64) {
 	dmg := b.Base.TakeDamage(damage)
-	b.Health -= dmg
+	b.shield -= dmg
+	if b.shield < 0 {
+		b.Health -= math.Abs(b.shield)
+		b.shield = 0
+	}
+	b.shieldCounter = 120
 }
 
 func (b *Turret) Alive() bool {
@@ -131,15 +139,7 @@ func NewTurret(locX, locY int, gun TurretGunInterface, base TurretBaseInterface,
 
 	opts.GeoM.Translate(float64(locX*64), float64(locY*64))
 	gunOpts.GeoM.Translate(float64(locX*64), float64(locY*64))
-
-	for _, s := range assets.Surroundings3x3 {
-		cX, cY := locX+s.X, locY+s.Y
-
-		if g.OutOfBounds(cX, cY) {
-			continue
-		}
-		g.AddTriggerFunc(cX, cY, t)
-	}
+	g.AddTriggerFuncs(t)
 	return t
 }
 
@@ -149,18 +149,20 @@ func (t *Turret) Update(g *world.Grid) {
 	}
 	if t.destroy {
 		t.EnemyTarget = nil
-		for _, s := range assets.Surroundings3x3 {
-			cX, cY := t.GridX+s.X, t.GridY+s.Y
-
-			if g.OutOfBounds(cX, cY) {
-				continue
-			}
-			g.RemoveTrigger(cX, cY, t)
-
-		}
+		g.RemoveTriggers(t)
 		g.SetGrid(t.GridX, t.GridY, world.GridLevelStructures, nil)
 	}
-
+	if t.Base.GetMaxShield() > 0 {
+		if t.shieldCounter > 0 {
+			t.shieldCounter--
+		} else {
+			if t.shield < float64(t.Base.GetMaxShield()) {
+				t.shield += 0.5
+			} else {
+				t.shield = float64(t.Base.GetMaxShield())
+			}
+		}
+	}
 	if t.EnemyTarget != nil {
 		if !t.EnemyTarget.IsAlive() {
 			t.EnemyTarget = nil
@@ -168,6 +170,7 @@ func (t *Turret) Update(g *world.Grid) {
 				t.EnemyKilledCb()
 			}
 		} else {
+			t.Gun.Update(nil)
 			t.gunOpts.GeoM.Reset()
 			enemyX, enemyY := t.EnemyTarget.GetPixelPosition()
 			eX, eY := float64(enemyX)+32, float64(enemyY)+32
@@ -180,10 +183,10 @@ func (t *Turret) Update(g *world.Grid) {
 			t.gunOpts.GeoM.Rotate(angle)
 			t.gunOpts.GeoM.Translate(64/2, 64/2)
 			t.gunOpts.GeoM.Translate(t.PixelX, t.PixelY)
-			if tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, eX, eY) < 200 {
+			if tentsuyutils.Distance(t.PixelX+32, t.PixelY+32, eX, eY) < float64(t.Gun.Range()) {
 				if t.shootTimer >= t.Gun.ReloadTime() {
 					t.shootTimer = 0
-					t.Gun.Fire(t.PixelX+32, t.PixelY+32, eX, eY, g.ProjectoryMng)
+					t.Gun.Fire(t.PixelX+32, t.PixelY+32, eX, eY, t.EnemyTarget, g.ProjectoryMng)
 				}
 			}
 		}
@@ -208,13 +211,19 @@ func (t *Turret) Draw(screen *ebiten.Image) {
 		screen.DrawImage(t.upgradeEffect[int(t.upgradeCounter)], t.opts)
 		t.opts.GeoM.Translate(0, 16)
 	}
-	if t.EnemyTarget == nil {
-		ebitenutil.DebugPrintAt(screen, "NNN", int(t.PixelX+2), int(t.PixelY))
-	} else if !t.EnemyTarget.IsAlive() {
-		ebitenutil.DebugPrintAt(screen, "DDD", int(t.PixelX+2), int(t.PixelY))
-	} else {
-		ebitenutil.DebugPrintAt(screen, "AAA", int(t.PixelX+2), int(t.PixelY))
+	if t.shield > 0 {
+		trans := -1 + t.shield/float64(t.Base.GetMaxShield())
+		t.opts.ColorM.Translate(0, 0, 0, trans)
+		screen.DrawImage(assets.Get[*ebiten.Image](assets.AssetsShield), t.opts)
+		t.opts.ColorM.Translate(0, 0, 0, -trans)
 	}
+	/*	if t.EnemyTarget == nil {
+			ebitenutil.DebugPrintAt(screen, "NNN", int(t.PixelX+2), int(t.PixelY))
+		} else if !t.EnemyTarget.IsAlive() {
+			ebitenutil.DebugPrintAt(screen, "DDD", int(t.PixelX+2), int(t.PixelY))
+		} else {
+			ebitenutil.DebugPrintAt(screen, "AAA", int(t.PixelX+2), int(t.PixelY))
+		}*/
 	t.DrawGui(screen)
 
 }

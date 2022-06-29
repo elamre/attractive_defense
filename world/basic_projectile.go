@@ -18,6 +18,12 @@ type BasicProjectile struct {
 	lifeCounter    int
 }
 
+func NewHeavyProjectile(startPixelX, startPixelY, targetPixelX, targetPixelY float64, effect *ProjectileEffect, lifeCounter int) *BasicProjectile {
+	b := BasicProjectile{lifeCounter: lifeCounter, image: assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_bullet), damages: effect}
+	b.calculateProjectory(startPixelX, startPixelY, targetPixelX, targetPixelY)
+	return &b
+}
+
 func NewSmallProjectile(startPixelX, startPixelY, targetPixelX, targetPixelY float64, effect *ProjectileEffect, lifeCounter int) *BasicProjectile {
 	b := BasicProjectile{lifeCounter: lifeCounter, image: assets.Get[*ebiten.Image](assets.AssetsTurretGun_light_bullet), damages: effect}
 	b.calculateProjectory(startPixelX, startPixelY, targetPixelX, targetPixelY)

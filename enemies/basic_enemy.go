@@ -11,8 +11,8 @@ import (
 )
 
 type BasicEnemy struct {
-	*EnemyHullSpecifications
-	*EnemyTurretSpecifications
+	hull              *EnemyHullSpecifications
+	turret            *EnemyTurretSpecifications
 	curSpeed          float64
 	pixelX, pixelY    float64
 	target            world.Targetable
@@ -26,20 +26,22 @@ type BasicEnemy struct {
 	shield            *ebiten.Image
 	shieldPct         int
 	shieldRechargeCnt int
+	frozenPct         float64
+	frozenCnt         int
 }
 
 func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hull *EnemyHullSpecifications) EnemyInterface {
 	b := BasicEnemy{
-		EnemyHullSpecifications:   hull,
-		EnemyTurretSpecifications: turret,
-		pixelX:                    pixelX,
-		pixelY:                    pixelY,
-		prevX:                     -1,
-		prevY:                     -1,
-		curSpeed:                  3,
-		health:                    float64(hull.maxHealth),
-		shieldPct:                 hull.maxShield,
-		hitbox:                    tentsuyu.Rectangle{W: hull.width, H: hull.height},
+		hull:      hull,
+		turret:    turret,
+		pixelX:    pixelX,
+		pixelY:    pixelY,
+		prevX:     -1,
+		prevY:     -1,
+		curSpeed:  3,
+		health:    float64(hull.maxHealth),
+		shieldPct: hull.maxShield,
+		hitbox:    tentsuyu.Rectangle{W: hull.width, H: hull.height},
 	}
 	b.shield = assets.Get[*ebiten.Image](assets.AssetsShield)
 	return &b
@@ -47,9 +49,10 @@ func NewBasicEnemy(pixelX, pixelY float64, turret *EnemyTurretSpecifications, hu
 func (b *BasicEnemy) CheckCollision(projectoryInterface world.ProjectoryInterface) bool {
 	if projectoryInterface.IsAlive() {
 		c := projectoryInterface.GetHitBox()
-		if b.hitbox.Contains(c.X, c.Y) {
+
+		if b.hitbox.Contains(c.X, c.Y) || c.Contains(b.pixelX, b.pixelY) {
 			projectoryInterface.Impact()
-			if b.maxShield > 0 {
+			if b.hull.maxShield > 0 {
 				b.shieldRechargeCnt = 0
 			}
 			if b.shieldPct > 0 {
@@ -61,13 +64,17 @@ func (b *BasicEnemy) CheckCollision(projectoryInterface world.ProjectoryInterfac
 			} else {
 				b.health -= projectoryInterface.GetProjectileEffect().Damage
 			}
+			if projectoryInterface.GetProjectileEffect().SlowDownPercentage > 0 {
+				b.curSpeed = b.hull.maxSpeed * (1 - projectoryInterface.GetProjectileEffect().SlowDownPercentage)
+				b.frozenCnt = projectoryInterface.GetProjectileEffect().SlowDownTime
+			}
 			return true
 		}
 	}
 	return false
 }
 func (b *BasicEnemy) GetReward() int {
-	return b.reward
+	return b.hull.reward
 }
 
 func (b *BasicEnemy) GetTarget() world.Targetable {
@@ -92,18 +99,24 @@ func (b *BasicEnemy) SetTarget(target world.Targetable) {
 	b.moveVec.Y = math.Sin(angle)
 	b.moveVec.X = math.Cos(angle)
 	b.distLeft = tentsuyutils.Distance(b.pixelX, b.pixelY, float64(tX), float64(tY))
-	b.curSpeed = b.maxSpeed
+	b.curSpeed = b.hull.maxSpeed
 }
 
 func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *world.ProjectoryManager) {
-	if b.maxShield > 0 {
-		if b.shieldPct < b.maxShield {
+	if b.hull.maxShield > 0 {
+		if b.shieldPct < b.hull.maxShield {
 			b.shieldRechargeCnt++
 			if b.shieldRechargeCnt > 30 {
 				b.shieldPct++
 			}
 		} else {
 			b.shieldRechargeCnt = 0
+		}
+	}
+	if b.frozenCnt > 0 {
+		b.frozenCnt--
+		if b.frozenCnt <= 0 {
+			b.curSpeed = b.hull.maxSpeed
 		}
 	}
 	if b.target == nil {
@@ -116,17 +129,16 @@ func (b *BasicEnemy) Update(g *world.Grid, p *game.Player, projectoryManager *wo
 	b.hitbox.X = b.pixelX + 16
 	b.hitbox.Y = b.pixelY + 16
 	b.dst.GeoM.Translate(travelX, travelY)
-	b.distLeft -= b.moveVec.Length() * b.maxSpeed
-	if b.distLeft < b.targetRange {
+	b.distLeft -= b.moveVec.Length() * b.hull.maxSpeed
+	if b.distLeft < b.turret.targetRange {
 		b.curSpeed = 0
 		b.shootCounter++
-		if b.shootCounter >= b.reloadSpeed {
+		if b.shootCounter >= b.turret.reloadSpeed {
 			b.shootCounter = 0
 			x, y := b.target.GetPixelCoordinates()
 			x += 32
 			y += 32
-
-			projectoryManager.AddEnemyProjectile(world.NewBasicProjectile(b.pixelX+32, b.pixelY+32, float64(x), float64(y)))
+			b.turret.shoot(b.pixelX+32, b.pixelY+32, float64(x), float64(y), projectoryManager)
 		}
 	} else {
 		if newX, newY := int((b.pixelX+32)/64), int((b.pixelY+32)/64); newX != b.prevX || newY != b.prevY {
@@ -143,7 +155,7 @@ func (b *BasicEnemy) IsAlive() bool {
 }
 
 func (b *BasicEnemy) Draw(screen *ebiten.Image) {
-	screen.DrawImage(b.image, &b.dst)
+	screen.DrawImage(b.hull.image, &b.dst)
 	if b.shieldPct > 0 {
 		screen.DrawImage(b.shield, &b.dst)
 	}

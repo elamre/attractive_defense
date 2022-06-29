@@ -5,6 +5,7 @@ import (
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
+	"log"
 	"math/rand"
 )
 
@@ -14,82 +15,9 @@ type EnemyManager struct {
 	waveNumber    int
 }
 
-type Wave struct {
-	content []WaveContent
-}
-
-type WaveContent struct {
-	amount int
-	spawn  func(pixelX, pixelY float64) EnemyInterface
-}
-
-var waves = []Wave{
-	{
-		[]WaveContent{
-			{
-				8,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewScoutEnemy(pixelX, pixelY)
-				},
-			},
-		},
-	},
-	{
-		[]WaveContent{
-			{
-				8,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewScoutEnemy(pixelX, pixelY)
-				},
-			},
-			{
-				4,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewShieldedScoutEnemy(pixelX, pixelY)
-				},
-			},
-		},
-	},
-	{
-		[]WaveContent{
-			{
-				10,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewShieldedScoutEnemy(pixelX, pixelY)
-				},
-			},
-			{
-				2,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewHeavyScoutEnemy(pixelX, pixelY)
-				},
-			},
-		},
-	},
-	{
-		[]WaveContent{
-			{
-				20,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewScoutEnemy(pixelX, pixelY)
-				},
-			},
-		},
-	},
-	{
-		[]WaveContent{
-			{
-				4,
-				func(pixelX, pixelY float64) EnemyInterface {
-					return NewEliteScoutEnemy(pixelX, pixelY)
-				},
-			},
-		},
-	},
-}
-
 func NewEnemyManager() *EnemyManager {
 	InitEnemyImages()
+	initHeaviesEnemyImages()
 	e := EnemyManager{EntityManager: assets.NewEntityManager[*EnemyInterface](), targetToEnemy: make(map[world.BuildingInterface][]EnemyInterface)}
 	return &e
 }
@@ -114,9 +42,36 @@ func (e *EnemyManager) ShouldSpawn() bool {
 }
 
 func (e *EnemyManager) Spawn(g *world.Grid, difficulty int) int {
-	wave := waves[e.waveNumber%len(waves)]
-	for i := range wave.content {
-		for s := 0; s < wave.content[i].amount; s++ {
+	assets.StaticSoundManager.PlayNewWave()
+	wave := make([]WaveContent, 0)
+	maxWave := len(SoutWaves) + len(heaviesWave)
+	extra := e.waveNumber - maxWave
+	if extra < 0 {
+		extra = 0
+	}
+	if e.waveNumber < len(SoutWaves) {
+		for i := range SoutWaves[e.waveNumber].content {
+			wave = append(wave, SoutWaves[e.waveNumber].content[i])
+		}
+	} else if e.waveNumber < (len(SoutWaves) + len(heaviesWave)) {
+		for i := range heaviesWave[e.waveNumber-len(SoutWaves)].content {
+			wave = append(wave, heaviesWave[e.waveNumber-len(SoutWaves)].content[i])
+		}
+	} else {
+		for i := range SoutWaves[e.waveNumber%len(SoutWaves)].content {
+			wave = append(wave, SoutWaves[e.waveNumber%len(SoutWaves)].content[i])
+		}
+		for i := range heaviesWave[e.waveNumber%len(heaviesWave)].content {
+			wave = append(wave, heaviesWave[e.waveNumber-len(heaviesWave)].content[i])
+		}
+	}
+	for i := range wave {
+		log.Printf("Wave %d amount %d difficulty %d extra %d", i, wave[i].amount, difficulty, extra)
+		amount := wave[i].amount + (difficulty - 1) + extra
+		for s := 0; s < amount; s++ {
+			if (difficulty - 1) > 0 {
+				difficulty--
+			}
 			side := rand.Int() % 4
 			rX := rand.Float64() * float64(g.Width*64)
 			rY := rand.Float64() * float64(g.Height*64)
@@ -129,7 +84,7 @@ func (e *EnemyManager) Spawn(g *world.Grid, difficulty int) int {
 			} else {
 				rX = float64(g.Width) * 64
 			}
-			t := wave.content[i].spawn(rX, rY)
+			t := wave[i].spawn(rX, rY)
 			e.assignTarget(t, g)
 			e.AddEnemy(t, g)
 		}

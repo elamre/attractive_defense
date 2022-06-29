@@ -1,13 +1,14 @@
 package gui
 
 import (
+	"github.com/elamre/attractive_defense/assets"
 	"github.com/elamre/attractive_defense/game"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const MagnetCost = 1000
-const ResearchCost = 2000
+const ResearchCost = 1500
 const LightTurretCost = 200
 const HeavyTurretCost = 600
 const BeamTurretCost = 1500
@@ -31,6 +32,8 @@ func (b *Button) Selected(p *game.Player, gui *SideGui, g *world.Grid) {
 		if b.selected(p, gui, g) {
 			p.Money -= b.cost
 		}
+	} else if p.Money < b.cost {
+		assets.StaticSoundManager.PlayInsufficientFunds()
 	}
 }
 

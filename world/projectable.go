@@ -19,7 +19,7 @@ type ProjectileEffect struct {
 	Homing             bool
 	Damage             float64
 	DamageRadius       int
-	SlowDownPercentage int
+	SlowDownPercentage float64
 	SlowDownTime       int
 	FreezeTime         int
 }

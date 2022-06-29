@@ -1,6 +1,8 @@
 package assets
 
 import (
+	"bytes"
+	_ "embed"
 	"github.com/elamre/tentsuyu"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -12,9 +14,17 @@ import (
 const ()
 
 const (
-	ImageFolder = "assets/images/"
+	ImageFolder = "resources/"
 	FontFolder  = "assets/fonts/"
 )
+
+//go:embed images/spritesheet_complete.png
+var spriteSheet []byte
+
+//go:embed images/splash.png
+var splashScreen []byte
+
+var SplashImage *ebiten.Image
 
 const (
 	AssetsPlatformImage          = "AssetsPlatformImage"
@@ -103,8 +113,13 @@ type Animation struct {
 func GetManager() *tentsuyu.AssetsManager {
 	if manager == nil {
 		deferList = make([]func(), 0)
+		var err error
 		manager = tentsuyu.NewAssetsManager()
-		spriteset, _, err := ebitenutil.NewImageFromFile(ImageFolder + "spritesheet_complete.png")
+		SplashImage, _, err = ebitenutil.NewImageFromReader(bytes.NewReader(splashScreen))
+		if err != nil {
+			panic(err)
+		}
+		spriteset, _, err := ebitenutil.NewImageFromReader(bytes.NewReader(spriteSheet))
 		if err != nil {
 			panic(err)
 		}
@@ -118,7 +133,7 @@ func GetManager() *tentsuyu.AssetsManager {
 		manager.AssetMap[AssetsTurretGun_light_2] = spriteset.SubImage(image.Rect(1*64, 1*64, 64+1*64, 1*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_light_3] = spriteset.SubImage(image.Rect(2*64, 1*64, 64+2*64, 1*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_light_4] = spriteset.SubImage(image.Rect(3*64, 1*64, 64+3*64, 1*64+64)).(*ebiten.Image)
-		manager.AssetMap[AssetsTurretGun_heavy_bullet] = spriteset.SubImage(image.Rect(4*64, 2*64, 64+4*64, 2*64+64)).(*ebiten.Image)
+		manager.AssetMap[AssetsTurretGun_heavy_bullet] = spriteset.SubImage(image.Rect(279, 157, 296, 162)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_heavy_1] = spriteset.SubImage(image.Rect(0*64, 2*64, 64+0*64, 2*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_heavy_2] = spriteset.SubImage(image.Rect(1*64, 2*64, 64+1*64, 2*64+64)).(*ebiten.Image)
 		manager.AssetMap[AssetsTurretGun_heavy_3] = spriteset.SubImage(image.Rect(2*64, 2*64, 64+2*64, 2*64+64)).(*ebiten.Image)

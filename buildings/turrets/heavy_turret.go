@@ -2,6 +2,7 @@ package turrets
 
 import (
 	"github.com/elamre/attractive_defense/assets"
+	"github.com/elamre/attractive_defense/enemies"
 	"github.com/elamre/attractive_defense/world"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -11,10 +12,14 @@ type heavyTurretGun struct {
 	upgradeButton *ebiten.Image
 	level         int
 	bulletEffects world.ProjectileEffect
+	findRange     int
 }
 
-func (l *heavyTurretGun) Fire(x, y, tX, tY float64, manager *world.ProjectoryManager) {
-	p := world.NewSmallProjectile(x, y, tX, tY, &l.bulletEffects, 250)
+func (l *heavyTurretGun) Range() int {
+	return l.findRange
+}
+func (l *heavyTurretGun) Fire(x, y, tX, tY float64, enemyInterface enemies.EnemyInterface, manager *world.ProjectoryManager) {
+	p := world.NewHeavyProjectile(x, y, tX, tY, &l.bulletEffects, 250)
 	manager.AddPlayerProjectile(p)
 }
 
@@ -37,6 +42,7 @@ func (l *heavyTurretGun) UpgradeCost() int {
 }
 
 func (l *heavyTurretGun) Upgrade() {
+	l.findRange += 10
 	switch l.level {
 	case 1:
 		l.bulletEffects.Damage *= 1.5
@@ -75,7 +81,8 @@ func newHeavyTurretGun() *heavyTurretGun {
 		image:         assets.Get[*ebiten.Image](assets.AssetsTurretGun_heavy_1),
 		upgradeButton: assets.Get[*ebiten.Image](assets.AssetsGuiHeavyTurretUpgrade),
 		level:         1,
-		bulletEffects: world.ProjectileEffect{Damage: 40, Speed: 3},
+		bulletEffects: world.ProjectileEffect{Damage: 40, Speed: 5},
+		findRange:     3 * 64,
 	}
 }
 

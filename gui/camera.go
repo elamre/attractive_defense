@@ -68,16 +68,16 @@ func (c *Camera) Reset() {
 
 func (c *Camera) Update() {
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		c.Position[0] -= 1
+		c.Position[0] -= 3
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		c.Position[0] += 1
+		c.Position[0] += 3
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		c.Position[1] -= 1
+		c.Position[1] -= 3
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		c.Position[1] += 1
+		c.Position[1] += 3
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
 		if c.ZoomFactor > -2400 {
